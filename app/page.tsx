@@ -174,6 +174,7 @@ export default function Home() {
 
         <div className="mt-8 text-center">
           <p className="text-gray-500 text-sm">Grow Nest Order Printer – Where Digital Growth Takes Flight 🚀 Simplify your fulfillment elevate your brand</p>
+          <p className="text-gray-400 text-xs mt-2">v1.1.1 · ATENEA CSV export fix + security update (2026-07-17)</p>
         </div>
       </div>
     </div>
