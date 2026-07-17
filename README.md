@@ -51,13 +51,30 @@ The fix (`lib/atenea-csv.ts`):
 
 Other outputs (PDF generators, print view, SKU image import) are untouched.
 
+## Dependencies (v1.1.1, 2026-07-17)
+
+- **next 15.5.20** — security upgrade from 15.2.4 (CVE-2025-66478, deprecated
+  on npm). Latest patched 15.x; the 16.x major is deliberately not taken here.
+- **pnpm is the package manager** (pinned via `packageManager`; lockfile is
+  `pnpm-lock.yaml`). An npm `package-lock.json` briefly committed in `e140d44`
+  made Vercel resolve the vulnerable Next.js pin — it has been removed; don't
+  commit npm/yarn lockfiles.
+- `pnpm.onlyBuiltDependencies` approves the `sharp` and `core-js` postinstall
+  scripts that pnpm v10 blocks by default (sharp needs its native binaries for
+  `next/image`).
+- **recharts removed** — it was only referenced by the unused shadcn
+  boilerplate `components/ui/chart.tsx` (deleted); no chart is rendered anywhere.
+- **vaul 1.1.2** (was 0.9.x) — clears the only React 19 peer-dependency
+  warning; its sole consumer is the unused shadcn drawer component.
+- No peer-dependency warnings remain on a clean `pnpm install`.
+
 ## Development
 
 ```bash
-npm install --legacy-peer-deps
-npm run dev           # http://localhost:3000
-npm test              # Node unit tests for the ATENEA CSV generator (no deps)
-npx playwright test   # end-to-end: upload → map → results → download → byte-validate
+pnpm install
+pnpm dev              # http://localhost:3000
+pnpm test             # Node unit tests for the ATENEA CSV generator (no deps)
+pnpm exec playwright test   # end-to-end: upload → map → results → download → byte-validate
 ```
 
 Unit tests live in `tests/atenea-csv.test.mjs` (run directly by Node ≥ 22.18

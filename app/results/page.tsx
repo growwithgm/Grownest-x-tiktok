@@ -539,7 +539,7 @@ export default function ResultsPage() {
             <div>
               <h1 className="text-xl font-bold mb-2">
                 Generated Packing Slips{" "}
-                <span className="text-xs font-normal text-gray-400 align-middle">v1.1.0 · ATENEA export</span>
+                <span className="text-xs font-normal text-gray-400 align-middle">v1.1.1 · ATENEA export</span>
               </h1>
               <p className="text-gray-600">
                 {packingSlips.length} packing slip{packingSlips.length !== 1 ? "s" : ""} generated. Click "Print All" to
