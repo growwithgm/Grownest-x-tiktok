@@ -11,6 +11,7 @@ import Link from "next/link"
 import { generatePackingSlipPDF } from "@/lib/pdf-generator"
 import { generateEnhancedPDF } from "@/lib/enhanced-pdf-generator"
 import { generatePdfFromTemplate } from "@/lib/html-to-pdf"
+import { buildAteneaCsv, encodeCp1252, resolveAteneaColumns, type AteneaRecord } from "@/lib/atenea-csv"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -219,48 +220,32 @@ export default function ResultsPage() {
         return
       }
 
-      // Get column mappings to determine weight column
+      // Resolve input columns by header name (stable across TikTok Shop export
+      // layout changes), honoring any saved column mapping first.
+      const headers: string[] = csvRows.length > 0 ? csvRows[0] : []
+      let mappingArray: string[] | undefined
       const storedMappings = localStorage.getItem("columnMappings")
-      let weightColumnIndex = -1
-
       if (storedMappings) {
         try {
           const mappings = JSON.parse(storedMappings)
-          if (mappings.default) {
-            // Find weight field in the mapping (it's the last field in our requiredFields array)
-            const weightMapping = mappings.default[13] // Weight is index 13 in requiredFields
-            if (weightMapping && weightMapping !== "" && weightMapping !== "none") {
-              // If it's a number, use it as column index, otherwise find the column by name
-              if (!isNaN(Number.parseInt(weightMapping))) {
-                weightColumnIndex = Number.parseInt(weightMapping) - 1 // Convert to 0-indexed
-              } else {
-                // Find column by header name
-                const csvHeaders = JSON.parse(localStorage.getItem("csvHeaders") || "[]")
-                const headerIndex = csvHeaders.indexOf(weightMapping)
-                if (headerIndex !== -1) {
-                  weightColumnIndex = headerIndex
-                }
-              }
-            }
+          if (Array.isArray(mappings.default)) {
+            mappingArray = mappings.default
           }
         } catch (error) {
           console.error("Failed to parse column mappings:", error)
         }
       }
 
-      // If no weight mapping found, try to find Weight(kg) column automatically
-      if (weightColumnIndex === -1) {
-        const csvHeaders = JSON.parse(localStorage.getItem("csvHeaders") || "[]")
-        const weightHeaderIndex = csvHeaders.findIndex(
-          (header: string) => /weight.*kg/i.test(header) || header === "Weight(kg)",
-        )
-        if (weightHeaderIndex !== -1) {
-          weightColumnIndex = weightHeaderIndex
-        } else {
-          // Default to column 50 (0-indexed as 49) if no mapping found
-          weightColumnIndex = 49
+      const cols = resolveAteneaColumns(headers, mappingArray)
+
+      // Legacy behavior: a numeric weight mapping value means a 1-based column number
+      if (mappingArray) {
+        const weightMapping = mappingArray[13] // Weight is index 13 in requiredFields
+        if (weightMapping && weightMapping !== "none" && !isNaN(Number.parseInt(weightMapping))) {
+          cols.weight = Number.parseInt(weightMapping) - 1
         }
       }
+      const weightColumnIndex = cols.weight
 
       // Check if we have enough columns for the weight column
       if (csvRows.length > 0 && csvRows[0].length <= weightColumnIndex) {
@@ -276,10 +261,9 @@ export default function ResultsPage() {
       csvRows.forEach((row: string[], index: number) => {
         if (index === 0) return // Skip header row
 
-        // Get recipient name from col 39, fallback to col 40
-        let recipientName = (row[38] || "").trim() // col 39 (0-indexed as 38)
-        if (!recipientName && row[39]) {
-          recipientName = row[39].trim() // col 40 (0-indexed as 39)
+        let recipientName = (row[cols.name] || "").trim()
+        if (!recipientName && row[cols.nameFallback]) {
+          recipientName = row[cols.nameFallback].trim()
         }
 
         // Skip rows with blank recipient names
@@ -303,49 +287,28 @@ export default function ResultsPage() {
 
         groupedData.get(groupKey)!.push({
           originalName: recipientName,
-          reference: (row[0] || "").trim(), // col 1
-          packageDescription: (row[7] || "").trim(), // col 8
-          recipientPhone: (row[39] || "").trim(), // col 40
-          recipientEmail: (row[40] || "").trim(), // col 41
-          recipientCountry: (row[41] || "").trim(), // col 42
-          recipientZip: (row[45] || "").trim(), // col 46
-          recipientAddress: (row[46] || "").trim(), // col 47
-          recipientAdditionalAddress: (row[47] || "").trim(), // col 48
+          reference: (row[cols.reference] || "").trim(),
+          packageDescription: (row[cols.description] || "").trim(),
+          recipientPhone: (row[cols.phone] || "").trim(),
+          recipientEmail: (row[cols.email] || "").trim(),
+          recipientCountry: (row[cols.country] || "").trim(),
+          recipientZip: (row[cols.zip] || "").trim(),
+          recipientAddress: (row[cols.address1] || "").trim(),
+          recipientAdditionalAddress: (row[cols.address2] || "").trim(),
           weight: parsedWeight,
         })
       })
 
-      // Create CSV output
-      const csvOutput = []
+      // One ATENEA record per recipient: first non-empty value for text fields,
+      // weights summed across the recipient's rows
+      const records: AteneaRecord[] = []
 
-      // Add headers (exactly 10 columns as specified)
-      csvOutput.push([
-        "Recipient name",
-        "Recipient Phone",
-        "Recipient e-mail",
-        "Recipient address",
-        "Recipient ZIP code",
-        "Recipient country",
-        "Reference",
-        "Recip. additional address",
-        "Package Description",
-        "Weight (Kg)",
-      ])
-
-      // Process each group
-      groupedData.forEach((items, groupKey) => {
+      groupedData.forEach((items) => {
         if (items.length === 0) return
 
-        // Use first item for non-numeric fields, sum ALL weights
         const firstItem = items[0]
-        const totalWeight = items.reduce((sum, item) => {
-          console.log(`Adding weight for ${firstItem.originalName}: ${item.weight}`)
-          return sum + item.weight
-        }, 0)
+        const totalWeight = items.reduce((sum, item) => sum + item.weight, 0)
 
-        console.log(`Total weight for ${firstItem.originalName}: ${totalWeight} (from ${items.length} items)`)
-
-        // Get first non-empty value for each field
         const getFirstNonEmpty = (field: string) => {
           for (const item of items) {
             if (item[field] && item[field].trim()) {
@@ -355,39 +318,29 @@ export default function ResultsPage() {
           return ""
         }
 
-        csvOutput.push([
-          firstItem.originalName,
-          getFirstNonEmpty("recipientPhone"),
-          getFirstNonEmpty("recipientEmail"),
-          getFirstNonEmpty("recipientAddress"),
-          getFirstNonEmpty("recipientZip"),
-          getFirstNonEmpty("recipientCountry"),
-          getFirstNonEmpty("reference"),
-          getFirstNonEmpty("recipientAdditionalAddress"),
-          getFirstNonEmpty("packageDescription"),
-          totalWeight.toFixed(2), // Ensure proper decimal formatting
-        ])
+        records.push({
+          name: firstItem.originalName,
+          phone: getFirstNonEmpty("recipientPhone"),
+          email: getFirstNonEmpty("recipientEmail"),
+          address1: getFirstNonEmpty("recipientAddress"),
+          zip: getFirstNonEmpty("recipientZip"),
+          country: getFirstNonEmpty("recipientCountry"),
+          reference: getFirstNonEmpty("reference"),
+          address2: getFirstNonEmpty("recipientAdditionalAddress"),
+          description: getFirstNonEmpty("packageDescription"),
+          weightKg: totalWeight,
+        })
       })
 
-      // Convert to CSV string with proper quoting
-      const csvString = csvOutput
-        .map((row) =>
-          row
-            .map((field) => {
-              const stringField = String(field || "")
-              // Quote field if it contains comma, quote, or newline
-              if (stringField.includes(",") || stringField.includes('"') || stringField.includes("\n")) {
-                return '"' + stringField.replace(/"/g, '""') + '"'
-              }
-              return stringField
-            })
-            .join(","),
-        )
-        .join("\n")
-
-      // Add UTF-8 BOM for Excel compatibility
-      const bom = "\uFEFF"
-      const csvWithBom = bom + csvString
+      // ATENEA's saved template has no text qualifier and reads ISO-8859-15:
+      // fields must be unquoted and comma-free, encoded as windows-1252 without
+      // BOM. buildAteneaCsv enforces exactly 9 commas per line and blocks the
+      // download on any violation.
+      const result = buildAteneaCsv(records)
+      if (!result.ok) {
+        setError(`\u26A0\uFE0F CSV export blocked \u2014 invalid row(s):\n${result.errors.join("\n")}`)
+        return
+      }
 
       // Create and download file
       const now = new Date()
@@ -404,7 +357,7 @@ export default function ResultsPage() {
 
       const filename = `packing_slips_${timestamp}.csv`
 
-      const blob = new Blob([csvWithBom], { type: "text/csv;charset=utf-8;" })
+      const blob = new Blob([encodeCp1252(result.csv)], { type: "text/csv;charset=windows-1252" })
       const link = document.createElement("a")
       link.href = URL.createObjectURL(blob)
       link.download = filename
@@ -584,7 +537,10 @@ export default function ResultsPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8 print:hidden">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl font-bold mb-2">Generated Packing Slips</h1>
+              <h1 className="text-xl font-bold mb-2">
+                Generated Packing Slips{" "}
+                <span className="text-xs font-normal text-gray-400 align-middle">v1.1.0 · ATENEA export</span>
+              </h1>
               <p className="text-gray-600">
                 {packingSlips.length} packing slip{packingSlips.length !== 1 ? "s" : ""} generated. Click "Print All" to
                 print or "Download PDF" to save as PDF.
