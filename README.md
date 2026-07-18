@@ -80,6 +80,28 @@ the app shows a notice («buyer» — orders to N different addresses, kept as
 separate shipments). A toggle on the results page (default **ON**) controls
 merging; switched OFF the CSV emits strict per-order rows.
 
+## Architecture: Supabase vs localStorage (v2.1.0)
+
+The app is login-protected via **Supabase Auth** (email/password, self-signup
+disabled — accounts are created by the admin in the dashboard). `middleware.ts`
+requires a session on every route except `/login`. Product data (SKU → image
+URL) lives in the shared Supabase **`products`** table
+(`supabase/migrations/0001_products.sql`, RLS: any authenticated user has full
+access; the service-role key is never used).
+
+| Data | Where |
+|---|---|
+| Auth session | Supabase (cookies via @supabase/ssr) |
+| Products / SKU images | Supabase `products` table + localStorage `products_cache` fallback |
+| Templates, settings, column mappings, uploaded orders, generated slips | localStorage (unchanged) |
+
+Slips read product images from the cache so printing never blocks on the
+network; Results shows an "offline copy" chip when the last fetch failed.
+Without `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` the app
+degrades gracefully ("not configured" states, no crash). Setup checklist:
+**SETUP.md**. E2E now uses `TEST_SUPABASE_EMAIL` / `TEST_SUPABASE_PASSWORD`
+(auth specs skip if absent).
+
 ## Dependencies (v1.1.1, 2026-07-17)
 
 - **next 15.5.20** — security upgrade from 15.2.4 (CVE-2025-66478, deprecated

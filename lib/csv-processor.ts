@@ -1,6 +1,7 @@
 import Papa from "papaparse"
 import type { PackingSlipData, CSVProcessResult } from "./types"
 import { normalizeAddressKey, sortOrderIdsOldestFirst } from "./atenea-csv"
+import { readProductImagesMap } from "./products"
 
 // One parcel can only carry one address: packing slips group per buyer AND per
 // distinct shipping address (zip + street + house), so a buyer whose orders
@@ -133,20 +134,8 @@ export async function processCSVWithMapping(
       // Log debug information
       logCSVDebugInfo(data, cleanedMapping)
 
-      // Get SKU images from localStorage - simplified to use only the new format
-      let skuImages: Record<string, string> = {}
-      try {
-        const storedImages = localStorage.getItem("skuImages")
-        if (storedImages) {
-          const images = JSON.parse(storedImages)
-          skuImages = images.reduce((acc: Record<string, string>, item: { sku: string; imageUrl: string }) => {
-            acc[item.sku] = item.imageUrl
-            return acc
-          }, {})
-        }
-      } catch (error) {
-        console.error("Failed to load SKU images:", error)
-      }
+      // Product images: Supabase-backed cache first, legacy localStorage fallback
+      const skuImages = readProductImagesMap()
 
       // Store raw CSV data for export functionality
       const rawCsvRows = [Object.keys(data[0]), ...data.map((row) => Object.values(row))]
@@ -498,20 +487,8 @@ export async function processCSV(file: File): Promise<CSVProcessResult> {
             )
           }
 
-          // Get SKU images from localStorage - simplified to use only the new format
-          let skuImages: Record<string, string> = {}
-          try {
-            const storedImages = localStorage.getItem("skuImages")
-            if (storedImages) {
-              const images = JSON.parse(storedImages)
-              skuImages = images.reduce((acc: Record<string, string>, item: { sku: string; imageUrl: string }) => {
-                acc[item.sku] = item.imageUrl
-                return acc
-              }, {})
-            }
-          } catch (error) {
-            console.error("Failed to load SKU images:", error)
-          }
+          // Product images: Supabase-backed cache first, legacy localStorage fallback
+          const skuImages = readProductImagesMap()
 
           // Group orders by customer username
           const customerOrders = new Map<string, PackingSlipData>()

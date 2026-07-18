@@ -1,10 +1,11 @@
 "use client"
 
 import type React from "react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { seedBuiltinTemplates } from "@/lib/builtin-templates"
+import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client"
 import {
   LayoutGrid,
   Upload,
@@ -13,6 +14,7 @@ import {
   Filter,
   SlidersHorizontal,
   Trash2,
+  LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -55,10 +57,36 @@ function GrowNestMark({ className }: { className?: string }) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const [userEmail, setUserEmail] = useState<string | null>(null)
 
   useEffect(() => {
     seedBuiltinTemplates()
   }, [])
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return
+    const supabase = getSupabaseBrowserClient()
+    supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? null))
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserEmail(session?.user?.email ?? null)
+    })
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
+  const handleSignOut = async () => {
+    try {
+      await getSupabaseBrowserClient().auth.signOut()
+    } finally {
+      router.push("/login")
+      router.refresh()
+    }
+  }
+
+  // The login screen renders without the app chrome
+  if (pathname === "/login") {
+    return <>{children}</>
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground lg:flex">
@@ -103,6 +131,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="border-t border-border px-5 py-4 space-y-3">
+          {userEmail && (
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono-ui text-[11px] text-muted-foreground truncate" title={userEmail}>
+                {userEmail}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </button>
+            </div>
+          )}
           <DeleteDataDialog
             trigger={
               <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -112,7 +154,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             }
           />
           <p className="font-mono-ui text-[11px] text-muted-foreground/70">
-            v2.0 · monochrome <span className="ml-2">● synced</span>
+            v2.1 · monochrome <span className="ml-2">● synced</span>
           </p>
         </div>
       </aside>
