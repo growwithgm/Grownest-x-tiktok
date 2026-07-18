@@ -187,6 +187,9 @@ export function TemplateEditor({ sampleData, onSave, initialTemplate }: Template
             <div>
               <code>{"{{total_orders}}"}</code> - Number of orders
             </div>
+            <div>
+              <code>{"{{total_weight}}"}</code> - Total weight (kg)
+            </div>
           </div>
           <p className="mt-2 mb-1">For item loops, use:</p>
           <pre className="bg-secondary p-2 rounded text-sm overflow-x-auto">
