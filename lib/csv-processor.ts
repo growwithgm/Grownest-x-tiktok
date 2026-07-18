@@ -1,5 +1,22 @@
 import Papa from "papaparse"
 import type { PackingSlipData, CSVProcessResult } from "./types"
+import { normalizeAddressKey, sortOrderIdsOldestFirst } from "./atenea-csv"
+
+// One parcel can only carry one address: packing slips group per buyer AND per
+// distinct shipping address (zip + street + house), so a buyer whose orders
+// name different addresses gets one slip per address.
+function slipGroupKey(username: string, zip: string, address1: string, address2: string): string {
+  return `${username.trim().toLowerCase()}::${normalizeAddressKey(zip, address1, address2)}`
+}
+
+// Keep every merged order's ID visible on the slip, oldest first.
+function appendOrderId(slip: PackingSlipData, orderId: string) {
+  if (!orderId || orderId === "Unknown") return
+  const existing = slip.orderNumber && slip.orderNumber !== "Unknown" ? slip.orderNumber.split(", ") : []
+  if (!existing.includes(orderId)) {
+    slip.orderNumber = sortOrderIdsOldestFirst([...existing, orderId]).join(", ")
+  }
+}
 
 // Helper function to parse weight values consistently
 function parseWeight(weightValue: string | number | null | undefined): number {
@@ -253,9 +270,20 @@ export async function processCSVWithMapping(
             }
           }
 
-          if (!customerOrders.has(username)) {
+          // Group per buyer AND per distinct shipping address
+          const rowZip =
+            cleanedMapping.postalCode && row[cleanedMapping.postalCode]
+              ? row[cleanedMapping.postalCode]
+              : row["Zipcode"] || ""
+          const rowAddress1 =
+            cleanedMapping.addressLine1 && row[cleanedMapping.addressLine1] ? row[cleanedMapping.addressLine1] : ""
+          const rowAddress2 =
+            cleanedMapping.addressLine2 && row[cleanedMapping.addressLine2] ? row[cleanedMapping.addressLine2] : ""
+          const groupKey = slipGroupKey(username, rowZip, rowAddress1, rowAddress2)
+
+          if (!customerOrders.has(groupKey)) {
             // Create new packing slip for this customer
-            customerOrders.set(username, {
+            customerOrders.set(groupKey, {
               orderNumber:
                 cleanedMapping.orderId && row[cleanedMapping.orderId]
                   ? row[cleanedMapping.orderId]
@@ -334,20 +362,22 @@ export async function processCSVWithMapping(
           }
 
           // Add item to customer's packing slip
-          const packingSlip = customerOrders.get(username)!
+          const packingSlip = customerOrders.get(groupKey)!
+          const itemOrderId =
+            cleanedMapping.orderId && row[cleanedMapping.orderId]
+              ? row[cleanedMapping.orderId]
+              : row["Order ID"] || "Unknown"
           packingSlip.items.push({
             name: productName,
             sku: sku,
             sellerSku: sellerSku,
             quantity: quantity,
             weight: itemWeight,
-            orderId:
-              cleanedMapping.orderId && row[cleanedMapping.orderId]
-                ? row[cleanedMapping.orderId]
-                : row["Order ID"] || "Unknown",
+            orderId: itemOrderId,
             // Try to find image by SKU or Seller SKU
             imageUrl: skuImages[sku] || skuImages[sellerSku] || undefined,
           })
+          appendOrderId(packingSlip, itemOrderId)
 
           // Update total weight for the packing slip
           packingSlip.totalWeight = (packingSlip.totalWeight || 0) + itemWeight * quantity
@@ -601,9 +631,17 @@ export async function processCSV(file: File): Promise<CSVProcessResult> {
                   .join(", ")
               }
 
-              if (!customerOrders.has(username)) {
+              // Group per buyer AND per distinct shipping address
+              const groupKey = slipGroupKey(
+                username,
+                postalCodeCol ? row[postalCodeCol] || "" : "",
+                addressLine1Col ? row[addressLine1Col] || "" : "",
+                addressLine2Col ? row[addressLine2Col] || "" : "",
+              )
+
+              if (!customerOrders.has(groupKey)) {
                 // Create new packing slip for this customer
-                customerOrders.set(username, {
+                customerOrders.set(groupKey, {
                   orderNumber: orderIdCol ? row[orderIdCol] || "Unknown" : "Unknown",
                   customer: {
                     name: recipientNameCol ? row[recipientNameCol] || "Unknown" : "Unknown",
@@ -634,17 +672,19 @@ export async function processCSV(file: File): Promise<CSVProcessResult> {
               const itemWeight = weightCol ? parseWeight(row[weightCol]) : 0
 
               // Add item to customer's packing slip
-              const packingSlip = customerOrders.get(username)!
+              const packingSlip = customerOrders.get(groupKey)!
+              const itemOrderId = orderIdCol ? row[orderIdCol] || "Unknown" : "Unknown"
               packingSlip.items.push({
                 name: productName,
                 sku: sku,
                 sellerSku: sellerSku,
                 quantity: quantity,
                 weight: itemWeight,
-                orderId: orderIdCol ? row[orderIdCol] || "Unknown" : "Unknown",
+                orderId: itemOrderId,
                 // Try to find image by SKU or Seller SKU
                 imageUrl: skuImages[sku] || skuImages[sellerSku] || undefined,
               })
+              appendOrderId(packingSlip, itemOrderId)
 
               // Update total weight for the packing slip
               packingSlip.totalWeight = (packingSlip.totalWeight || 0) + itemWeight * quantity
