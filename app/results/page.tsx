@@ -8,6 +8,8 @@ import { TemplateRenderer } from "@/components/template-renderer"
 import type { PackingSlipData } from "@/lib/types"
 import Link from "next/link"
 import { buildAteneaCsv, buildShipments, encodeCp1252, resolveAteneaColumns, type OrderRow } from "@/lib/atenea-csv"
+import { loadProductsWithCache } from "@/lib/products"
+import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -61,6 +63,7 @@ export default function ResultsPage() {
   const [csvRows, setCsvRows] = useState<string[][]>([])
   const [mergeSameBuyer, setMergeSameBuyer] = useState(true)
   const [mergeNotices, setMergeNotices] = useState<string[]>([])
+  const [productsOffline, setProductsOffline] = useState(false)
 
   useEffect(() => {
     try {
@@ -122,6 +125,14 @@ export default function ResultsPage() {
         if (defaultTemplateName) {
           setPdfSettings({ useCustomTemplate: true, templateName: defaultTemplateName, pdfGenerator: "template" })
         }
+      }
+
+      // Refresh the shared product-image cache (best effort); flag when the
+      // network fetch failed and slips render from the last offline copy
+      if (isSupabaseConfigured()) {
+        loadProductsWithCache(getSupabaseBrowserClient())
+          .then(({ source }) => setProductsOffline(source === "cache"))
+          .catch(() => setProductsOffline(true))
       }
 
       // Load merge preference (default ON)
@@ -366,7 +377,12 @@ export default function ResultsPage() {
             <p className="text-muted-foreground mt-2">
               {packingSlips.length} slip{packingSlips.length !== 1 ? "s" : ""} · merged by buyer ·{" "}
               {packingSlips.reduce((sum, s) => sum + (s.totalWeight || 0), 0).toFixed(2)} kg total{" "}
-              <span className="font-mono-ui text-[11px] text-muted-foreground/70 ml-2">v2.0.0 · ATENEA export</span>
+              <span className="font-mono-ui text-[11px] text-muted-foreground/70 ml-2">v2.1.0 · ATENEA export</span>
+              {productsOffline && (
+                <span className="font-mono-ui inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-0.5 text-[10px] tracking-[0.14em] uppercase text-muted-foreground ml-2 align-middle">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Offline copy of product images
+                </span>
+              )}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

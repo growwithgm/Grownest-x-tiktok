@@ -123,6 +123,16 @@ export async function autoProcessUpload(csvContent: string, headers: string[]): 
       return "/map-columns"
     }
 
+    // Refresh the shared product-image cache first (best effort — slips fall
+    // back to the last cached copy if the network is down)
+    try {
+      const { isSupabaseConfigured, getSupabaseBrowserClient } = await import("./supabase/client")
+      const { loadProductsWithCache } = await import("./products")
+      await loadProductsWithCache(isSupabaseConfigured() ? getSupabaseBrowserClient() : null)
+    } catch (cacheError) {
+      console.error("Product cache refresh failed:", cacheError)
+    }
+
     const { processCSVWithMapping } = await import("./csv-processor")
     const result = await processCSVWithMapping(csvContent, mapping)
     if (result.success && result.data.length > 0) {

@@ -4,6 +4,7 @@ import { test, expect } from "@playwright/test"
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { ensureSignedIn } from "./helpers.mjs"
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const fixture = path.join(here, "..", "fixtures", "tiktok-orders.csv")
@@ -11,6 +12,7 @@ const shots = path.join(here, "..", "..", "test-results")
 
 test("ATENEA CSV export produces unquoted, cp1252, 10-column output", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
+  await ensureSignedIn(page)
 
   // Upload
   await page.goto("/upload")

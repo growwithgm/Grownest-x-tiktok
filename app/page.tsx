@@ -155,7 +155,7 @@ export default function Home() {
 
       <div className="flex items-center justify-between border-t border-border pt-6">
         <p className="text-sm text-muted-foreground">Grow Nest — where digital growth takes flight.</p>
-        <p className="font-mono-ui text-[11px] text-muted-foreground/70">v2.0.0 · monochrome</p>
+        <p className="font-mono-ui text-[11px] text-muted-foreground/70">v2.1.0 · monochrome</p>
       </div>
     </div>
   )
