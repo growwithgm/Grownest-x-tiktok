@@ -15,12 +15,8 @@ test("ATENEA CSV export produces unquoted, cp1252, 10-column output", async ({ p
   // Upload
   await page.goto("/upload")
   await page.setInputFiles('input[type="file"]', fixture)
-  await page.getByRole("button", { name: "Continue to Column Mapping" }).click()
-  await page.waitForURL("**/map-columns")
-
-  // Map columns (TikTok auto-detection) and process
-  await page.getByRole("button", { name: "Auto-Detect Columns" }).click()
-  await page.getByRole("button", { name: "Process CSV with Mapping" }).click()
+  // Columns auto-map on upload — no Map Columns screen in the flow
+  await page.getByRole("button", { name: "Generate packing slips" }).click()
   await page.waitForURL("**/results", { timeout: 60_000 })
   await expect(page.getByText("Generated packing slips")).toBeVisible()
 

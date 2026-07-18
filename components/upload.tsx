@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { autoProcessUpload } from "@/lib/auto-mapping"
 
 export function Upload() {
   const [file, setFile] = useState<File | null>(null)
@@ -150,19 +151,23 @@ export function Upload() {
             localStorage.setItem("csvContent", csvContent)
             localStorage.setItem("csvHeaders", JSON.stringify(csvHeaders))
 
-            // Simulate progress
-            setProgress(100)
+            setProgress(60)
 
-            // Redirect to the column mapping page
-            toast({
-              title: "CSV file uploaded",
-              description: "Please map the columns to continue",
+            // Auto-map columns and generate slips; manual mapping only when
+            // the headers can't be resolved
+            autoProcessUpload(csvContent, csvHeaders).then((route) => {
+              setProgress(100)
+              toast({
+                title: route === "/results" ? "Packing slips generated" : "CSV file uploaded",
+                description:
+                  route === "/results"
+                    ? "Columns were mapped automatically"
+                    : "Please map the columns to continue",
+              })
+              setTimeout(() => {
+                router.push(route)
+              }, 400)
             })
-
-            // Wait a moment to show 100% progress before redirecting
-            setTimeout(() => {
-              router.push("/map-columns")
-            }, 500)
           } catch (error) {
             setError(`Error processing CSV: ${error instanceof Error ? error.message : "Unknown error"}`)
             setProgress(0)
@@ -310,7 +315,7 @@ export function Upload() {
             <span className="text-sm font-medium text-muted-foreground">{file.name}</span>
           </div>
           <Button variant="default" className="rounded-full" onClick={handleUpload} disabled={csvHeaders.length === 0}>
-            Continue to Column Mapping
+            Generate packing slips
           </Button>
         </div>
       )}

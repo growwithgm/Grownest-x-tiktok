@@ -27,7 +27,6 @@ const NAV = [
     items: [
       { href: "/", label: "Dashboard", icon: LayoutGrid },
       { href: "/upload", label: "Upload Orders", icon: Upload },
-      { href: "/map-columns", label: "Map columns", icon: Table2 },
       { href: "/results", label: "Results", icon: Printer },
     ],
   },
@@ -42,6 +41,7 @@ const NAV = [
     label: "System",
     items: [
       { href: "/settings", label: "Settings", icon: SlidersHorizontal },
+      { href: "/map-columns", label: "Map columns", icon: Table2 },
       { href: "/templates", label: "Templates", icon: FileCode },
       { href: "/sku-images", label: "SKU images", icon: ImageIcon },
     ],
