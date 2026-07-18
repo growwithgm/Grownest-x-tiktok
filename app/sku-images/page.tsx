@@ -238,8 +238,8 @@ export default function SkuImagesPage() {
     const [error, setError] = useState(false)
 
     return error ? (
-      <div className={`flex items-center justify-center bg-gray-100 ${className || "h-12 w-12"}`}>
-        <AlertCircle className="h-4 w-4 text-gray-400" />
+      <div className={`flex items-center justify-center bg-secondary ${className || "h-12 w-12"}`}>
+        <AlertCircle className="h-4 w-4 text-muted-foreground/70" />
       </div>
     ) : (
       <img
@@ -252,7 +252,7 @@ export default function SkuImagesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <Link href="/">
@@ -263,9 +263,9 @@ export default function SkuImagesPage() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h1 className="text-xl font-bold mb-2">Manage Product Images</h1>
-          <p className="text-gray-600 mb-6">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-8">
+          <h1 className="font-display text-4xl mb-3">SKU images</h1>
+          <p className="text-muted-foreground mb-6">
             Upload and manage images for your products. These images will be automatically used when generating packing
             slips.
           </p>
@@ -293,7 +293,7 @@ export default function SkuImagesPage() {
                   <h2 className="text-lg font-medium">Add New Seller SKU Image</h2>
 
                   <div>
-                    <label htmlFor="seller-sku" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="seller-sku" className="block text-sm font-medium text-muted-foreground mb-1">
                       Seller SKU
                     </label>
                     <Input
@@ -305,14 +305,14 @@ export default function SkuImagesPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="image" className="block text-sm font-medium text-muted-foreground mb-1">
                       Product Image
                     </label>
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
                         <label
                           htmlFor="seller-sku-image-upload"
-                          className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50"
+                          className="flex items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-background"
                         >
                           {previewUrl ? (
                             <div className="relative w-full h-full">
@@ -320,8 +320,8 @@ export default function SkuImagesPage() {
                             </div>
                           ) : (
                             <div className="flex flex-col items-center justify-center">
-                              <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                              <span className="text-sm text-gray-500">Click to upload</span>
+                              <Upload className="h-8 w-8 text-muted-foreground/70 mb-2" />
+                              <span className="text-sm text-muted-foreground">Click to upload</span>
                             </div>
                           )}
                           <input
@@ -349,7 +349,7 @@ export default function SkuImagesPage() {
 
                   <div>
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
                       <Input
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -363,23 +363,23 @@ export default function SkuImagesPage() {
                     <div className="max-h-80 overflow-y-auto">
                       {filteredImages.length > 0 ? (
                         <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
+                          <thead className="bg-background">
                             <tr>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                 Seller SKU
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                 Image
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                 Actions
                               </th>
                             </tr>
                           </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
+                          <tbody className="bg-card divide-y divide-gray-200">
                             {filteredImages.map((item) => (
                               <tr key={`${item.type}-${item.sku}`}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                                   {item.sku}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -387,7 +387,7 @@ export default function SkuImagesPage() {
                                     <SafeImage src={item.imageUrl} alt={item.sku} className="h-12 w-12" />
                                   </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -414,14 +414,14 @@ export default function SkuImagesPage() {
                           </tbody>
                         </table>
                       ) : (
-                        <div className="p-6 text-center text-gray-500">
+                        <div className="p-6 text-center text-muted-foreground">
                           {searchQuery ? "No matching Seller SKUs found" : "No Seller SKU images saved yet"}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     Total: {filteredImages.length} Seller SKU image{filteredImages.length !== 1 ? "s" : ""}
                   </div>
                 </div>
@@ -434,7 +434,7 @@ export default function SkuImagesPage() {
                   <h2 className="text-lg font-medium">Add New SKU Image</h2>
 
                   <div>
-                    <label htmlFor="sku" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="sku" className="block text-sm font-medium text-muted-foreground mb-1">
                       SKU
                     </label>
                     <Input
@@ -446,14 +446,14 @@ export default function SkuImagesPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="image" className="block text-sm font-medium text-muted-foreground mb-1">
                       Product Image
                     </label>
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
                         <label
                           htmlFor="sku-image-upload"
-                          className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50"
+                          className="flex items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-background"
                         >
                           {previewUrl ? (
                             <div className="relative w-full h-full">
@@ -461,8 +461,8 @@ export default function SkuImagesPage() {
                             </div>
                           ) : (
                             <div className="flex flex-col items-center justify-center">
-                              <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                              <span className="text-sm text-gray-500">Click to upload</span>
+                              <Upload className="h-8 w-8 text-muted-foreground/70 mb-2" />
+                              <span className="text-sm text-muted-foreground">Click to upload</span>
                             </div>
                           )}
                           <input
@@ -490,7 +490,7 @@ export default function SkuImagesPage() {
 
                   <div>
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
                       <Input
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -504,23 +504,23 @@ export default function SkuImagesPage() {
                     <div className="max-h-80 overflow-y-auto">
                       {filteredImages.length > 0 ? (
                         <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
+                          <thead className="bg-background">
                             <tr>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                 SKU
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                 Image
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                 Actions
                               </th>
                             </tr>
                           </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
+                          <tbody className="bg-card divide-y divide-gray-200">
                             {filteredImages.map((item) => (
                               <tr key={`${item.type}-${item.sku}`}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                                   {item.sku}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -528,7 +528,7 @@ export default function SkuImagesPage() {
                                     <SafeImage src={item.imageUrl} alt={item.sku} className="h-12 w-12" />
                                   </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -555,14 +555,14 @@ export default function SkuImagesPage() {
                           </tbody>
                         </table>
                       ) : (
-                        <div className="p-6 text-center text-gray-500">
+                        <div className="p-6 text-center text-muted-foreground">
                           {searchQuery ? "No matching SKUs found" : "No SKU images saved yet"}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     Total: {filteredImages.length} SKU image{filteredImages.length !== 1 ? "s" : ""}
                   </div>
                 </div>
@@ -581,7 +581,7 @@ export default function SkuImagesPage() {
 
                 <div>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
                     <Input
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -595,23 +595,23 @@ export default function SkuImagesPage() {
                   <div className="max-h-80 overflow-y-auto">
                     {filteredProductImages.length > 0 ? (
                       <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-background">
                           <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                               Product Name
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                               Image
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                               Actions
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-card divide-y divide-gray-200">
                           {filteredProductImages.map((item) => (
                             <tr key={item.productName}>
-                              <td className="px-6 py-4 text-sm font-medium text-gray-900 max-w-xs truncate">
+                              <td className="px-6 py-4 text-sm font-medium text-foreground max-w-xs truncate">
                                 {item.productName}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -619,7 +619,7 @@ export default function SkuImagesPage() {
                                   <SafeImage src={item.imageUrl} alt={item.productName} className="h-12 w-12" />
                                 </div>
                               </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -634,14 +634,14 @@ export default function SkuImagesPage() {
                         </tbody>
                       </table>
                     ) : (
-                      <div className="p-6 text-center text-gray-500">
+                      <div className="p-6 text-center text-muted-foreground">
                         {searchQuery ? "No matching products found" : "No product images saved yet"}
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-muted-foreground">
                   Total: {filteredProductImages.length} product image{filteredProductImages.length !== 1 ? "s" : ""}
                 </div>
               </div>
@@ -650,7 +650,7 @@ export default function SkuImagesPage() {
             <TabsContent value="import" className="mt-0">
               <div className="space-y-4">
                 <h2 className="text-lg font-medium">Import Product Images from CSV</h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   Upload a CSV or Excel file with product names and image URLs to bulk import product images.
                 </p>
                 <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -667,16 +667,16 @@ export default function SkuImagesPage() {
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-card divide-y divide-gray-200">
                         <tr>
-                          <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">SKU001</td>
-                          <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                          <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">SKU001</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">
                             https://mydomain.com/images/sku001.jpg
                           </td>
                         </tr>
                         <tr>
-                          <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">SKU002</td>
-                          <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                          <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">SKU002</td>
+                          <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">
                             https://cdn.example.com/img/sku002.png
                           </td>
                         </tr>

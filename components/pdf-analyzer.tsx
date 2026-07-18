@@ -177,7 +177,7 @@ export function PdfAnalyzer({ packingSlipData, onOptimize, htmlContent, pdfParam
           </TabsList>
 
           <TabsContent value="structure" className="space-y-4 mt-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Analyze your packing slip data structure to identify potential improvements for PDF generation.
             </p>
 
@@ -199,14 +199,14 @@ export function PdfAnalyzer({ packingSlipData, onOptimize, htmlContent, pdfParam
 
             {isAnalyzing && activeTab === "structure" && (
               <div className="flex items-center justify-center p-6">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-                <span className="ml-2 text-gray-600">Analyzing data structure...</span>
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-muted-foreground">Analyzing data structure...</span>
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="layout" className="space-y-4 mt-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Validate the HTML layout that will be converted to PDF to identify potential rendering issues.
             </p>
 
@@ -234,14 +234,14 @@ export function PdfAnalyzer({ packingSlipData, onOptimize, htmlContent, pdfParam
 
             {isAnalyzing && activeTab === "layout" && (
               <div className="flex items-center justify-center p-6">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-                <span className="ml-2 text-gray-600">Validating layout...</span>
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-muted-foreground">Validating layout...</span>
               </div>
             )}
           </TabsContent>
 
           <TabsContent value="params" className="space-y-4 mt-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Optimize PDF generation parameters for better output quality and consistency.
             </p>
 
@@ -263,8 +263,8 @@ export function PdfAnalyzer({ packingSlipData, onOptimize, htmlContent, pdfParam
 
             {isAnalyzing && activeTab === "params" && (
               <div className="flex items-center justify-center p-6">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-                <span className="ml-2 text-gray-600">Optimizing parameters...</span>
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-muted-foreground">Optimizing parameters...</span>
               </div>
             )}
           </TabsContent>

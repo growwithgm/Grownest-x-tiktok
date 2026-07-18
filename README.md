@@ -1,4 +1,20 @@
-# Grow Nest – Order Printer (TikTok Shop)
+# TokFlow by Grow Nest (TikTok Shop Order Printer)
+
+**v2.0 "monochrome"** — full redesign to the TokFlow design language: dark
+near-black UI (#09090B) with off-white ink, Newsreader serif display
+headings, Geist body and Geist Mono accents, a persistent sidebar
+(Workflow · Convert · System) and a three-step workflow (Upload → Map
+columns → Generate). Printed packing slips remain ink-on-white.
+
+The redesign also adds two client-side Convert tools:
+
+- **Ship File converter** — turn an Amazon tracking `.txt` export
+  (tab-separated `order-id`, `carrier-name`, `tracking-number`) into a TikTok
+  Shop Ship File `.xlsx` (Order ID / Carrier / Tracking ID; carrier names
+  normalized to TikTok's dropdown, e.g. correos → Correos, gls → GLS Spain).
+  The `.xlsx` is produced by a dependency-free writer (`lib/xlsx-lite.ts`).
+- **FBT Filter** — remove Fulfilled-by-TikTok rows (or any fulfillment type)
+  from a Shop order export and download the cleaned CSV.
 
 Next.js warehouse tool for GROW NEST / Don Cabello fulfillment. It takes a
 **TikTok Shop order export CSV** (columns like `Order ID`, `Product Name`,

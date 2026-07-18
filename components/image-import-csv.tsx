@@ -191,7 +191,7 @@ export function ImageImportCSV({ onImportComplete }: ImageImportCSVProps) {
         </Alert>
       )}
 
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:bg-gray-50 transition-colors">
+      <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:bg-background transition-colors">
         <input
           type="file"
           id="image-csv-upload"
@@ -202,11 +202,11 @@ export function ImageImportCSV({ onImportComplete }: ImageImportCSVProps) {
         />
 
         <label htmlFor="image-csv-upload" className="cursor-pointer flex flex-col items-center justify-center">
-          <Upload className="h-12 w-12 text-gray-400 mb-4" />
-          <p className="text-lg font-medium text-gray-700 mb-1">
+          <Upload className="h-12 w-12 text-muted-foreground/70 mb-4" />
+          <p className="text-lg font-medium text-muted-foreground mb-1">
             {file ? file.name : "Click to upload product images CSV"}
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             {file
               ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
               : "CSV should contain product name and image URL columns"}
@@ -218,9 +218,9 @@ export function ImageImportCSV({ onImportComplete }: ImageImportCSVProps) {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Product Name Column</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Product Name Column</label>
               <select
-                className="w-full rounded-md border border-gray-300 p-2"
+                className="w-full rounded-md border border-border p-2"
                 value={productNameColumn || ""}
                 onChange={(e) => setProductNameColumn(e.target.value)}
               >
@@ -233,9 +233,9 @@ export function ImageImportCSV({ onImportComplete }: ImageImportCSVProps) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Image URL Column</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1">Image URL Column</label>
               <select
-                className="w-full rounded-md border border-gray-300 p-2"
+                className="w-full rounded-md border border-border p-2"
                 value={imageUrlColumn || ""}
                 onChange={(e) => setImageUrlColumn(e.target.value)}
               >
@@ -250,34 +250,34 @@ export function ImageImportCSV({ onImportComplete }: ImageImportCSVProps) {
           </div>
 
           {previewData.length > 0 && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Preview:</h3>
+            <div className="mt-4 p-4 bg-background rounded-lg border border-border">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Preview:</h3>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-background">
                     <tr>
                       {productNameColumn && (
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Product Name
                         </th>
                       )}
                       {imageUrlColumn && (
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                           Image URL
                         </th>
                       )}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-gray-200">
                     {previewData.map((row, index) => (
                       <tr key={index}>
                         {productNameColumn && (
-                          <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                          <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">
                             {row[productNameColumn]}
                           </td>
                         )}
                         {imageUrlColumn && (
-                          <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500 truncate max-w-xs">
+                          <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground truncate max-w-xs">
                             {row[imageUrlColumn]}
                           </td>
                         )}
@@ -292,10 +292,10 @@ export function ImageImportCSV({ onImportComplete }: ImageImportCSVProps) {
       )}
 
       {file && !isProcessing && (
-        <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+        <div className="flex items-center justify-between bg-background p-4 rounded-lg">
           <div className="flex items-center">
-            <FileText className="h-5 w-5 text-gray-500 mr-2" />
-            <span className="text-sm font-medium text-gray-700">{file.name}</span>
+            <FileText className="h-5 w-5 text-muted-foreground mr-2" />
+            <span className="text-sm font-medium text-muted-foreground">{file.name}</span>
           </div>
           <Button variant="default" onClick={handleImport} disabled={!productNameColumn || !imageUrlColumn}>
             Import Product Images
@@ -306,12 +306,12 @@ export function ImageImportCSV({ onImportComplete }: ImageImportCSVProps) {
       {isProcessing && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Processing file...</span>
-            <span className="text-sm text-gray-500">{progress}%</span>
+            <span className="text-sm font-medium text-muted-foreground">Processing file...</span>
+            <span className="text-sm text-muted-foreground">{progress}%</span>
           </div>
           <Progress value={progress} className="h-2" />
           <div className="flex justify-center">
-            <Loader2 className="h-5 w-5 text-gray-500 animate-spin" />
+            <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
           </div>
         </div>
       )}

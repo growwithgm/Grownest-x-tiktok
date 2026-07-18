@@ -119,7 +119,7 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <Link href="/">
@@ -145,9 +145,9 @@ export default function TemplatesPage() {
           </Dialog>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h1 className="text-xl font-bold mb-2">Custom Templates</h1>
-          <p className="text-gray-600 mb-6">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-8">
+          <h1 className="font-display text-4xl mb-3">Custom templates</h1>
+          <p className="text-muted-foreground mb-6">
             Create and manage custom packing slip templates. These templates will be available when generating packing
             slips.
           </p>
@@ -168,7 +168,7 @@ export default function TemplatesPage() {
                     <CardDescription>Custom packing slip template</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-40 overflow-hidden border rounded bg-gray-50 p-2">
+                    <div className="h-40 overflow-hidden border rounded bg-background p-2">
                       <iframe
                         srcDoc={`<style>${template.css}</style>${template.html}`}
                         title={template.name}

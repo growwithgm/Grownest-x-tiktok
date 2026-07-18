@@ -138,8 +138,8 @@ export function LogoManager() {
     const [error, setError] = useState(false)
 
     return error ? (
-      <div className={`flex items-center justify-center bg-gray-100 ${className || "h-16 w-full"}`}>
-        <AlertCircle className="h-4 w-4 text-gray-400" />
+      <div className={`flex items-center justify-center bg-secondary ${className || "h-16 w-full"}`}>
+        <AlertCircle className="h-4 w-4 text-muted-foreground/70" />
       </div>
     ) : (
       <img
@@ -162,13 +162,13 @@ export function LogoManager() {
 
       <div className="space-y-4">
         <h2 className="text-lg font-medium">Custom Logo</h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Upload a custom logo to be displayed on your packing slips. Recommended size: 353 x 65 pixels.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="logo-width" className="block text-sm font-medium text-gray-700 mb-1">
+            <Label htmlFor="logo-width" className="block text-sm font-medium text-muted-foreground mb-1">
               Logo Width (px)
             </Label>
             <Input
@@ -181,7 +181,7 @@ export function LogoManager() {
             />
           </div>
           <div>
-            <Label htmlFor="logo-height" className="block text-sm font-medium text-gray-700 mb-1">
+            <Label htmlFor="logo-height" className="block text-sm font-medium text-muted-foreground mb-1">
               Logo Height (px)
             </Label>
             <Input
@@ -196,14 +196,14 @@ export function LogoManager() {
         </div>
 
         <div>
-          <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="logo" className="block text-sm font-medium text-muted-foreground mb-1">
             Logo Image
           </label>
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <label
                 htmlFor="logo-upload"
-                className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50"
+                className="flex items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-background"
               >
                 {previewUrl ? (
                   <div className="relative w-full h-full p-4">
@@ -211,8 +211,8 @@ export function LogoManager() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center">
-                    <Upload className="h-8 w-8 text-gray-400 mb-2" />
-                    <span className="text-sm text-gray-500">Click to upload logo</span>
+                    <Upload className="h-8 w-8 text-muted-foreground/70 mb-2" />
+                    <span className="text-sm text-muted-foreground">Click to upload logo</span>
                   </div>
                 )}
                 <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
@@ -233,9 +233,9 @@ export function LogoManager() {
         </div>
 
         {savedLogo && !previewUrl && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Current Logo:</h3>
-            <div className="h-16 bg-white p-2 rounded border border-gray-200">
+          <div className="mt-4 p-4 bg-background rounded-lg border border-border">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Current Logo:</h3>
+            <div className="h-16 bg-card p-2 rounded border border-border">
               <SafeImage src={savedLogo} alt="Current Logo" className="h-full w-auto mx-auto" />
             </div>
           </div>

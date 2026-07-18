@@ -345,7 +345,7 @@ export default function ResultsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-gray-300 rounded-full border-t-[#FE2C55]"></div>
+        <div className="animate-spin h-8 w-8 border-4 border-border rounded-full border-t-foreground"></div>
       </div>
     )
   }
@@ -363,7 +363,7 @@ export default function ResultsPage() {
           </Alert>
         )}
 
-        <p className="text-gray-600 mb-8 text-center max-w-xl">
+        <p className="text-muted-foreground mb-8 text-center max-w-xl">
           {!error && "Please upload a CSV file to generate packing slips."}
           <br />
           Make sure your CSV file contains all required fields and is properly formatted.
@@ -394,23 +394,26 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="print:bg-white">
+      <div className="px-4 sm:px-8 py-10 max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8 print:hidden">
-          <Link href="/">
-            <Button variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
-          </Link>
-          <div className="space-x-2">
-            <Button variant="outline" onClick={handlePrint}>
+          <div>
+            <p className="kicker mb-3">Step 03 / 03</p>
+            <h1 className="font-display text-4xl">Generated packing slips</h1>
+            <p className="text-muted-foreground mt-2">
+              {packingSlips.length} slip{packingSlips.length !== 1 ? "s" : ""} · merged by buyer ·{" "}
+              {packingSlips.reduce((sum, s) => sum + (s.totalWeight || 0), 0).toFixed(2)} kg total{" "}
+              <span className="font-mono-ui text-[11px] text-muted-foreground/70 ml-2">v2.0.0 · ATENEA export</span>
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" className="rounded-full bg-transparent" onClick={handlePrint}>
               <Printer className="mr-2 h-4 w-4" />
               Print All
             </Button>
             <Dialog open={showPdfSettings} onOpenChange={setShowPdfSettings}>
               <DialogTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="rounded-full bg-transparent">
                   <Settings className="mr-2 h-4 w-4" />
                   PDF Settings
                 </Button>
@@ -496,36 +499,28 @@ export default function ResultsPage() {
                 </div>
               </DialogContent>
             </Dialog>
-            <Button variant="outline" onClick={handleDownloadCSV}>
+            <Button variant="outline" className="rounded-full bg-transparent" onClick={handleDownloadCSV}>
               <FileDown className="mr-2 h-4 w-4" />
               Download CSV
             </Button>
-            <Button onClick={handleDownloadPDF} disabled={generating}>
+            <Button className="rounded-full" onClick={handleDownloadPDF} disabled={generating}>
               <Download className="mr-2 h-4 w-4" />
               {generating ? "Generating PDF..." : "Download PDF"}
             </Button>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8 print:hidden">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-8 print:hidden">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl font-bold mb-2">
-                Generated Packing Slips{" "}
-                <span className="text-xs font-normal text-gray-400 align-middle">v1.2.0 · ATENEA export</span>
-              </h1>
-              <p className="text-gray-600">
-                {packingSlips.length} packing slip{packingSlips.length !== 1 ? "s" : ""} generated. Click "Print All" to
-                print or "Download PDF" to save as PDF.
-              </p>
-              <div className="flex items-center space-x-2 mt-3">
+              <div className="flex items-center space-x-2">
                 <Switch id="merge-same-buyer" checked={mergeSameBuyer} onCheckedChange={handleMergeToggle} />
                 <Label htmlFor="merge-same-buyer">
                   Merge same-buyer orders into one shipment (ATENEA CSV)
                 </Label>
               </div>
               {mergeNotices.length > 0 && (
-                <Alert className="mt-3 border-amber-300 bg-amber-50 text-amber-900">
+                <Alert className="mt-3 border-border bg-secondary text-foreground">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Shipments kept separate</AlertTitle>
                   <AlertDescription>
@@ -551,7 +546,7 @@ export default function ResultsPage() {
           </div>
 
           {templates.length > 0 && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="mt-6 p-4 bg-background rounded-lg border border-border">
               <div className="flex flex-col sm:flex-row gap-4 items-center">
                 <div className="flex items-center space-x-2">
                   <Switch id="use-custom-template" checked={useCustomTemplate} onCheckedChange={setUseCustomTemplate} />
@@ -576,7 +571,7 @@ export default function ResultsPage() {
                 )}
               </div>
 
-              <div className="mt-4 text-sm text-gray-500">
+              <div className="mt-4 text-sm text-muted-foreground">
                 <p>
                   <strong>Note:</strong> The template selected above is for preview only. To use a custom template for
                   PDF generation, click the "PDF Settings" button and configure your PDF template settings.
