@@ -5,6 +5,7 @@ import { Upload, Table2, Truck, Filter, ImageIcon, FileCode, SlidersHorizontal }
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { autoProcessUpload } from "@/lib/auto-mapping"
 
 export default function Home() {
   const router = useRouter()
@@ -45,7 +46,7 @@ export default function Home() {
               .split(",")
               .map((h) => h.trim())
             localStorage.setItem("csvHeaders", JSON.stringify(headers))
-            router.push("/map-columns")
+            autoProcessUpload(content, headers).then((route) => router.push(route))
           }
         }
         reader.readAsText(file)
