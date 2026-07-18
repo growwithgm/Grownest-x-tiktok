@@ -3,3 +3,5 @@ Order ID,Order Status,SKU ID,Seller SKU,Product Name,Variation,Quantity,Weight (
 576923089641511794,Shipped,173124,DC-PACK,Don Cabello Pack Anticaída y Crecimiento Capilar Bombar con Romero Canela y Jengibre,Pack,1,1.50,reinaluz,Reina luz Maldonado,642549408,reinaluciasteven@hotmail.com,España,Castilla y León,Aranda de Duero,09400,Plaza Santiago,8 4B
 576923089641511795,Shipped,173125,DC-LOCION,Loción Capilar Fórmula Natural Sin Siliconas,1ud,1,1.50,reinaluz,Reina luz Maldonado,642549408,reinaluciasteven@hotmail.com,España,Castilla y León,Aranda de Duero,09400,Plaza Santiago,8 4B
 576000000000000001,Shipped,173126,DC-CHAMPU,Champú Sólido de Romero y Canela,1ud,1,0.35,mpena,María Peña,0034612345678,maria.pena@example.com,España,Islas Baleares,Es Mercadal,7760,Camí de Tramuntana 4,
+576100000000000001,Shipped,173127,DC-LOCION,Loción Capilar Fórmula Natural,1ud,1,0.40,pablo.dc,Pablo Dos Casas,611111111,pablo.dc@example.com,España,Madrid,Madrid,28001,Calle Mayor 1,3A
+576100000000000002,Shipped,173128,DC-CHAMPU,Champú Sólido de Romero y Canela,1ud,1,0.60,pablo.dc,Pablo Dos Casas,611111111,pablo.dc@example.com,España,Madrid,Madrid,28001,Calle Menor 9,1B

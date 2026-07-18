@@ -51,6 +51,19 @@ The fix (`lib/atenea-csv.ts`):
 
 Other outputs (PDF generators, print view, SKU image import) are untouched.
 
+## Same-buyer order merging (v1.2.0)
+
+The ATENEA CSV **merges by buyer account; different addresses ship
+separately**. Orders are grouped by normalized Buyer Username (trimmed,
+TikTok's trailing tab stripped, lowercased; empty usernames fall back to the
+phone's digits). Each merged shipment sums the weights, uses the **oldest
+order's ID as Reference**, and the packing slip lists every merged order ID.
+Within one buyer, orders whose shipping address (zip + street + house)
+differs are kept as separate shipments — one parcel carries one address — and
+the app shows a notice («buyer» — orders to N different addresses, kept as
+separate shipments). A toggle on the results page (default **ON**) controls
+merging; switched OFF the CSV emits strict per-order rows.
+
 ## Dependencies (v1.1.1, 2026-07-17)
 
 - **next 15.5.20** — security upgrade from 15.2.4 (CVE-2025-66478, deprecated

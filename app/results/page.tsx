@@ -11,7 +11,7 @@ import Link from "next/link"
 import { generatePackingSlipPDF } from "@/lib/pdf-generator"
 import { generateEnhancedPDF } from "@/lib/enhanced-pdf-generator"
 import { generatePdfFromTemplate } from "@/lib/html-to-pdf"
-import { buildAteneaCsv, encodeCp1252, resolveAteneaColumns, type AteneaRecord } from "@/lib/atenea-csv"
+import { buildAteneaCsv, buildShipments, encodeCp1252, resolveAteneaColumns, type OrderRow } from "@/lib/atenea-csv"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -66,6 +66,8 @@ export default function ResultsPage() {
   })
   const [showPdfSettings, setShowPdfSettings] = useState(false)
   const [csvRows, setCsvRows] = useState<string[][]>([])
+  const [mergeSameBuyer, setMergeSameBuyer] = useState(true)
+  const [mergeNotices, setMergeNotices] = useState<string[]>([])
 
   useEffect(() => {
     try {
@@ -122,6 +124,9 @@ export default function ResultsPage() {
           console.error("Failed to parse PDF settings:", error)
         }
       }
+
+      // Load merge preference (default ON)
+      setMergeSameBuyer(localStorage.getItem("mergeSameBuyerOrders") !== "false")
 
       // Load raw CSV data
       const rawCsvData = localStorage.getItem("rawCsvData")
@@ -211,6 +216,11 @@ export default function ResultsPage() {
     setShowPdfSettings(false)
   }
 
+  const handleMergeToggle = (checked: boolean) => {
+    setMergeSameBuyer(checked)
+    localStorage.setItem("mergeSameBuyerOrders", String(checked))
+  }
+
   const handleDownloadCSV = () => {
     try {
       // Get the raw CSV data from localStorage
@@ -255,8 +265,8 @@ export default function ResultsPage() {
         return
       }
 
-      // Group data by recipient name (case-insensitive, trimmed)
-      const groupedData = new Map<string, any[]>()
+      // Collect one OrderRow per input row
+      const orders: OrderRow[] = []
 
       csvRows.forEach((row: string[], index: number) => {
         if (index === 0) return // Skip header row
@@ -272,65 +282,28 @@ export default function ResultsPage() {
           return
         }
 
-        // Use original recipient name as key for grouping (case-insensitive)
-        const groupKey = recipientName.toLowerCase()
-
-        if (!groupedData.has(groupKey)) {
-          groupedData.set(groupKey, [])
-        }
-
-        // Parse weight from the mapped column
-        const weightValue = row[weightColumnIndex] || "0"
-        const parsedWeight = parseWeight(weightValue)
-
-        console.log(`Row ${index + 1}: Recipient "${recipientName}", Weight "${weightValue}" -> ${parsedWeight}`)
-
-        groupedData.get(groupKey)!.push({
-          originalName: recipientName,
-          reference: (row[cols.reference] || "").trim(),
-          packageDescription: (row[cols.description] || "").trim(),
-          recipientPhone: (row[cols.phone] || "").trim(),
-          recipientEmail: (row[cols.email] || "").trim(),
-          recipientCountry: (row[cols.country] || "").trim(),
-          recipientZip: (row[cols.zip] || "").trim(),
-          recipientAddress: (row[cols.address1] || "").trim(),
-          recipientAdditionalAddress: (row[cols.address2] || "").trim(),
-          weight: parsedWeight,
+        orders.push({
+          orderId: (row[cols.reference] || "").trim(),
+          username: (row[cols.username] || "").trim(),
+          name: recipientName,
+          phone: (row[cols.phone] || "").trim(),
+          email: (row[cols.email] || "").trim(),
+          country: (row[cols.country] || "").trim(),
+          zip: (row[cols.zip] || "").trim(),
+          address1: (row[cols.address1] || "").trim(),
+          address2: (row[cols.address2] || "").trim(),
+          description: (row[cols.description] || "").trim(),
+          weightKg: parseWeight(row[weightColumnIndex] || "0"),
         })
       })
 
-      // One ATENEA record per recipient: first non-empty value for text fields,
-      // weights summed across the recipient's rows
-      const records: AteneaRecord[] = []
-
-      groupedData.forEach((items) => {
-        if (items.length === 0) return
-
-        const firstItem = items[0]
-        const totalWeight = items.reduce((sum, item) => sum + item.weight, 0)
-
-        const getFirstNonEmpty = (field: string) => {
-          for (const item of items) {
-            if (item[field] && item[field].trim()) {
-              return item[field].trim()
-            }
-          }
-          return ""
-        }
-
-        records.push({
-          name: firstItem.originalName,
-          phone: getFirstNonEmpty("recipientPhone"),
-          email: getFirstNonEmpty("recipientEmail"),
-          address1: getFirstNonEmpty("recipientAddress"),
-          zip: getFirstNonEmpty("recipientZip"),
-          country: getFirstNonEmpty("recipientCountry"),
-          reference: getFirstNonEmpty("reference"),
-          address2: getFirstNonEmpty("recipientAdditionalAddress"),
-          description: getFirstNonEmpty("packageDescription"),
-          weightKg: totalWeight,
-        })
-      })
+      // Merge into shipments:
+      // toggle ON  → merged per buyer account (per distinct shipping address),
+      //              Reference = oldest order's ID, weights summed;
+      // toggle OFF → strict per-order rows.
+      const { shipments, notices } = buildShipments(orders, mergeSameBuyer)
+      setMergeNotices(notices)
+      const records = shipments
 
       // ATENEA's saved template has no text qualifier and reads ISO-8859-15:
       // fields must be unquoted and comma-free, encoded as windows-1252 without
@@ -539,12 +512,29 @@ export default function ResultsPage() {
             <div>
               <h1 className="text-xl font-bold mb-2">
                 Generated Packing Slips{" "}
-                <span className="text-xs font-normal text-gray-400 align-middle">v1.1.1 · ATENEA export</span>
+                <span className="text-xs font-normal text-gray-400 align-middle">v1.2.0 · ATENEA export</span>
               </h1>
               <p className="text-gray-600">
                 {packingSlips.length} packing slip{packingSlips.length !== 1 ? "s" : ""} generated. Click "Print All" to
                 print or "Download PDF" to save as PDF.
               </p>
+              <div className="flex items-center space-x-2 mt-3">
+                <Switch id="merge-same-buyer" checked={mergeSameBuyer} onCheckedChange={handleMergeToggle} />
+                <Label htmlFor="merge-same-buyer">
+                  Merge same-buyer orders into one shipment (ATENEA CSV)
+                </Label>
+              </div>
+              {mergeNotices.length > 0 && (
+                <Alert className="mt-3 border-amber-300 bg-amber-50 text-amber-900">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Shipments kept separate</AlertTitle>
+                  <AlertDescription>
+                    {mergeNotices.map((notice) => (
+                      <div key={notice}>{notice}</div>
+                    ))}
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
             <div className="flex gap-2">
               <Link href="/templates">

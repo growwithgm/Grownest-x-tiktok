@@ -58,8 +58,9 @@ test("ATENEA CSV export produces unquoted, cp1252, 10-column output", async ({ p
     expect(line.split(",").length - 1, `bad comma count: ${line}`).toBe(9)
   }
 
-  // Header + 3 grouped recipients (Reina's two order rows merge into one)
-  expect(lines).toHaveLength(4)
+  // Header + 5 shipments: Reina's two orders (same buyer, same address) merge
+  // into one; Pablo's two orders (same buyer, DIFFERENT addresses) stay apart
+  expect(lines).toHaveLength(6)
   const rows = lines.slice(1).map((l) => l.split(","))
   const byName = Object.fromEntries(rows.map((r) => [r[0], r]))
 
@@ -76,11 +77,41 @@ test("ATENEA CSV export produces unquoted, cp1252, 10-column output", async ({ p
   expect(reina[3]).toBe("Plaza Santiago")
   expect(reina[4]).toBe("09400")
   expect(reina[7]).toBe("8 4B")
-  expect(reina[9]).toBe("3.00") // 1.50 + 1.50 summed across her two rows
+  expect(reina[9]).toBe("3.00") // 1.50 + 1.50 summed across her two orders
+  expect(reina[6]).toBe("576923089641511794") // Reference = oldest order's ID
   expect(reina[1]).toBe("(+34)642549408")
 
   const maria = byName["Mar\xeda Pe\xf1a"]
   expect(maria[4]).toBe("07760") // leading zero restored
   expect(maria[7]).toBe(maria[3]) // no line 2 in input → duplicate of address 1
   expect(maria[1]).toBe("(+34)612345678")
+
+  // Address-conflict guard: Pablo ships to two addresses → two rows + UI notice
+  const pabloRows = rows.filter((r) => r[0] === "Pablo Dos Casas")
+  expect(pabloRows).toHaveLength(2)
+  await expect(
+    page.getByText("«Pablo Dos Casas» — orders to 2 different addresses, kept as separate shipments"),
+  ).toBeVisible()
+
+  // Reina's packing slip lists ALL merged order IDs, oldest first
+  await expect(page.getByText("ORDER #576923089641511794, 576923089641511795")).toBeVisible()
+
+  // Toggle OFF → strict per-order rows (6 orders → 6 rows)
+  await page.getByLabel("Merge same-buyer orders into one shipment (ATENEA CSV)").click()
+  const [download2] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "Download CSV" }).click(),
+  ])
+  const text2 = fs.readFileSync(await download2.path()).toString("latin1")
+  const lines2 = text2.trimEnd().split("\n")
+  expect(lines2).toHaveLength(7)
+  const refs = lines2.slice(1).map((l) => l.split(",")[6]).sort()
+  expect(refs).toEqual([
+    "576000000000000001",
+    "576100000000000001",
+    "576100000000000002",
+    "576923089641511794",
+    "576923089641511795",
+    "576924678488890364",
+  ])
 })

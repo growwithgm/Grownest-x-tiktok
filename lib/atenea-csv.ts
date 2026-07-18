@@ -150,6 +150,141 @@ export function encodeCp1252(text: string): Uint8Array {
 }
 
 // ---------------------------------------------------------------------------
+// Same-buyer order merging.
+//
+// TikTok lets one buyer place several orders that ship together, so shipments
+// are merged per buyer account: normalized Buyer Username (TikTok appends a
+// trailing tab to usernames to stop spreadsheets mangling them), falling back
+// to phone digits when the username is empty. Address is NOT part of the merge
+// key — but one parcel can only carry one address, so when a buyer's orders
+// name different shipping addresses they are kept as separate shipments (one
+// per distinct address) and a notice is reported. This mirrors TikTok's own
+// order-combine behavior.
+// ---------------------------------------------------------------------------
+
+export interface OrderRow {
+  orderId: string
+  username: string
+  name: string
+  phone: string
+  email: string
+  address1: string
+  zip: string
+  country: string
+  address2: string
+  description: string
+  weightKg: number
+}
+
+export interface Shipment extends AteneaRecord {
+  orderIds: string[]
+}
+
+export interface ShipmentBuildResult {
+  shipments: Shipment[]
+  notices: string[]
+}
+
+export function normalizeBuyerKey(username: string | null | undefined, phone: string | null | undefined): string {
+  const u = String(username ?? "")
+    .replace(/[\s ]+$/g, "")
+    .trim()
+    .toLowerCase()
+  if (u) return u
+  // Phone fallback: normalize away the Spanish country prefix so
+  // "(+34)633333333" and "633333333" merge to the same buyer.
+  let digits = String(phone ?? "").replace(/\D/g, "")
+  if (digits.startsWith("0034")) digits = digits.slice(4)
+  else if (digits.startsWith("34") && digits.length === 11) digits = digits.slice(2)
+  return digits
+}
+
+export function normalizeAddressKey(
+  zip: string | null | undefined,
+  address1: string | null | undefined,
+  address2: string | null | undefined,
+): string {
+  const norm = (value: string | null | undefined) =>
+    String(value ?? "")
+      .toLowerCase()
+      .replace(/,/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  return [norm(zip), norm(address1), norm(address2)].join("|")
+}
+
+// TikTok Order IDs are numeric and time-ordered, so the smallest is the oldest.
+export function sortOrderIdsOldestFirst(ids: string[]): string[] {
+  const unique = [...new Set(ids.filter(Boolean))]
+  if (unique.length > 1 && unique.every((id) => /^\d+$/.test(id))) {
+    unique.sort((a, b) => (BigInt(a) < BigInt(b) ? -1 : BigInt(a) > BigInt(b) ? 1 : 0))
+  }
+  return unique
+}
+
+export function buildShipments(orders: OrderRow[], mergeSameBuyer: boolean): ShipmentBuildResult {
+  const groups = new Map<string, OrderRow[]>()
+
+  orders.forEach((order, index) => {
+    let key: string
+    if (mergeSameBuyer) {
+      const buyer = normalizeBuyerKey(order.username, order.phone)
+      key = buyer ? `buyer:${buyer}|addr:${normalizeAddressKey(order.zip, order.address1, order.address2)}` : `row:${index}`
+    } else {
+      key = order.orderId ? `order:${order.orderId}` : `row:${index}`
+    }
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key)!.push(order)
+  })
+
+  // Address-conflict guard notices: one buyer split across multiple addresses
+  const notices: string[] = []
+  if (mergeSameBuyer) {
+    const addressesPerBuyer = new Map<string, { display: string; addresses: Set<string> }>()
+    for (const order of orders) {
+      const buyer = normalizeBuyerKey(order.username, order.phone)
+      if (!buyer) continue
+      if (!addressesPerBuyer.has(buyer)) {
+        addressesPerBuyer.set(buyer, { display: order.name || order.username || buyer, addresses: new Set() })
+      }
+      addressesPerBuyer.get(buyer)!.addresses.add(normalizeAddressKey(order.zip, order.address1, order.address2))
+    }
+    for (const { display, addresses } of addressesPerBuyer.values()) {
+      if (addresses.size > 1) {
+        notices.push(`«${display}» — orders to ${addresses.size} different addresses, kept as separate shipments`)
+      }
+    }
+  }
+
+  const shipments: Shipment[] = []
+  groups.forEach((rows) => {
+    const firstNonEmpty = (field: keyof OrderRow): string => {
+      for (const row of rows) {
+        const value = String(row[field] ?? "").trim()
+        if (value) return value
+      }
+      return ""
+    }
+    const orderIds = sortOrderIdsOldestFirst(rows.map((r) => r.orderId))
+    shipments.push({
+      name: firstNonEmpty("name"),
+      phone: firstNonEmpty("phone"),
+      email: firstNonEmpty("email"),
+      address1: firstNonEmpty("address1"),
+      zip: firstNonEmpty("zip"),
+      country: firstNonEmpty("country"),
+      reference: orderIds[0] || "", // oldest order's ID
+      address2: firstNonEmpty("address2"),
+      description: firstNonEmpty("description"),
+      weightKg: rows.reduce((sum, r) => sum + (Number.isFinite(r.weightKg) ? r.weightKg : 0), 0),
+      orderIds,
+    })
+  })
+
+  return { shipments, notices }
+}
+
+// ---------------------------------------------------------------------------
 // Column resolution against the uploaded CSV's real header row.
 //
 // The pre-fix exporter addressed the TikTok Shop export by hard-coded column
@@ -160,6 +295,7 @@ export function encodeCp1252(text: string): Uint8Array {
 // ---------------------------------------------------------------------------
 
 export interface AteneaColumnIndices {
+  username: number
   name: number
   nameFallback: number
   phone: number
@@ -174,6 +310,7 @@ export interface AteneaColumnIndices {
 }
 
 const HEADER_CANDIDATES: Record<string, string[]> = {
+  username: ["Buyer Username", "Buyer username", "Username"],
   name: ["Recipient", "Recipient Name"],
   phone: ["Phone #", "Phone Number", "Phone"],
   email: ["Email", "E-mail", "Buyer Email", "Recipient Email"],
@@ -193,6 +330,7 @@ const HEADER_CANDIDATES: Record<string, string[]> = {
 }
 
 const LEGACY_INDICES: Record<string, number> = {
+  username: 37,
   name: 38,
   phone: 39,
   email: 40,
@@ -222,6 +360,7 @@ function findHeaderIndex(headers: string[], candidates: string[]): number {
 // mappingArray is the saved column mapping from the map-columns page
 // (14 header names, indexed by requiredFields order).
 const MAPPING_ARRAY_SLOTS: Record<string, number> = {
+  username: 0,
   reference: 1,
   description: 2,
   name: 6,
@@ -250,6 +389,7 @@ export function resolveAteneaColumns(headers: string[], mappingArray?: string[])
   }
 
   return {
+    username: resolve("username"),
     name: resolve("name"),
     nameFallback: LEGACY_INDICES.phone,
     phone: resolve("phone"),
