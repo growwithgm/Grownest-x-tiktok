@@ -114,7 +114,8 @@ export default function ResultsPage() {
         }
       }
 
-      // Load PDF settings
+      // Load PDF settings. When the user never saved explicit settings and a
+      // default template exists, PDFs use that template — matching the preview.
       const storedPdfSettings = localStorage.getItem("pdfSettings")
       if (storedPdfSettings) {
         try {
@@ -122,6 +123,11 @@ export default function ResultsPage() {
           setPdfSettings(parsedSettings)
         } catch (error) {
           console.error("Failed to parse PDF settings:", error)
+        }
+      } else {
+        const defaultTemplateName = localStorage.getItem("defaultTemplate")
+        if (defaultTemplateName) {
+          setPdfSettings({ useCustomTemplate: true, templateName: defaultTemplateName, pdfGenerator: "template" })
         }
       }
 
@@ -167,8 +173,15 @@ export default function ResultsPage() {
             break
           case "standard":
           default:
-            // Use the regular PDF generator
-            await generatePackingSlipPDF(packingSlips)
+            // WYSIWYG: when the on-screen preview uses a template, the PDF
+            // follows it; the legacy generator only runs with no template.
+            if (useCustomTemplate && selectedTemplate) {
+              await generatePdfFromTemplate(packingSlips, selectedTemplate)
+            } else if (localStorage.getItem("defaultTemplate")) {
+              await generatePdfFromTemplate(packingSlips)
+            } else {
+              await generatePackingSlipPDF(packingSlips)
+            }
             break
         }
       } catch (error) {
@@ -573,8 +586,8 @@ export default function ResultsPage() {
 
               <div className="mt-4 text-sm text-muted-foreground">
                 <p>
-                  <strong>Note:</strong> The template selected above is for preview only. To use a custom template for
-                  PDF generation, click the "PDF Settings" button and configure your PDF template settings.
+                  <strong>Note:</strong> "Download PDF" follows the template selected above — the PDF matches the
+                  preview. Use "PDF Settings" to pick a different generator or template for PDFs only.
                 </p>
               </div>
             </div>

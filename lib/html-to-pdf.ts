@@ -237,7 +237,11 @@ export async function generatePdfFromTemplate(packingSlips: PackingSlipData[], t
     }
 
     // Save the PDF
-    doc.save("tiktok-shop-packing-slips.pdf")
+    const templateSlug = ((template as any).name || "template")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+    doc.save(`packing-slips-${templateSlug}.pdf`)
   } catch (error) {
     console.error("Error generating PDF from template:", error)
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred"
