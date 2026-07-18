@@ -6,7 +6,6 @@ import { Save, HelpCircle, Loader2, FileText, AlertTriangle, Info, CheckCircle }
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { WorkflowStepper } from "@/components/layout/workflow-stepper"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { processCSVWithMapping } from "@/lib/csv-processor"
@@ -395,7 +394,7 @@ export default function MapColumnsPage() {
     <div className="px-4 sm:px-8 py-10 max-w-5xl mx-auto">
       <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
         <div>
-          <p className="kicker mb-4">Step 02 / 03</p>
+          <p className="kicker mb-4">System</p>
           <h2 className="font-display text-4xl mb-3">Map your columns</h2>
           <p className="text-muted-foreground">Match CSV headers to slip fields — we'll remember it for next time.</p>
         </div>
@@ -403,8 +402,6 @@ export default function MapColumnsPage() {
           Auto-Detect Columns
         </Button>
       </div>
-      <WorkflowStepper current={2} />
-
       {processingError && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />

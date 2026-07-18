@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Upload as UploadComponent } from "@/components/upload"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { WorkflowStepper } from "@/components/layout/workflow-stepper"
 
 export default function UploadPage() {
   const router = useRouter()
@@ -59,13 +58,11 @@ export default function UploadPage() {
 
   return (
     <div className="px-4 sm:px-8 py-10 max-w-4xl mx-auto">
-      <p className="kicker mb-4">Step 01 / 03</p>
+      <p className="kicker mb-4">Workflow</p>
       <h1 className="font-display text-4xl mb-3">Upload your orders</h1>
       <p className="text-muted-foreground max-w-lg mb-8">
         Export your orders from TikTok Shop as a CSV and drop the file below. Nothing leaves your browser.
       </p>
-
-      <WorkflowStepper current={1} />
 
       {isRedirecting ? (
         <div className="tokflow-card text-center py-12">
