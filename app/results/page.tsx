@@ -1,16 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowLeft, Printer, Download, Zap, AlertTriangle, RefreshCw, FileText, Settings, FileDown } from "lucide-react"
+import { ArrowLeft, Printer, AlertTriangle, RefreshCw, FileText, Settings, FileDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PackingSlip } from "@/components/packing-slip"
 import { TemplateRenderer } from "@/components/template-renderer"
-import { PdfAnalyzer } from "@/components/pdf-analyzer"
 import type { PackingSlipData } from "@/lib/types"
 import Link from "next/link"
-import { generatePackingSlipPDF } from "@/lib/pdf-generator"
-import { generateEnhancedPDF } from "@/lib/enhanced-pdf-generator"
-import { generatePdfFromTemplate } from "@/lib/html-to-pdf"
 import { buildAteneaCsv, buildShipments, encodeCp1252, resolveAteneaColumns, type OrderRow } from "@/lib/atenea-csv"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -47,10 +43,7 @@ function parseWeight(weightValue: string | number | null | undefined): number {
 export default function ResultsPage() {
   const [packingSlips, setPackingSlips] = useState<PackingSlipData[]>([])
   const [loading, setLoading] = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [showAnalyzer, setShowAnalyzer] = useState(false)
   const [useAI, setUseAI] = useState(false)
-  const [optimizedSlips, setOptimizedSlips] = useState<PackingSlipData[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [templates, setTemplates] = useState<{ name: string }[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
@@ -154,49 +147,6 @@ export default function ResultsPage() {
 
   const handlePrint = () => {
     window.print()
-  }
-
-  const handleDownloadPDF = async () => {
-    if (packingSlips.length > 0) {
-      try {
-        setGenerating(true)
-        setError(null)
-
-        switch (pdfSettings.pdfGenerator) {
-          case "enhanced":
-            // Use the AI-enhanced PDF generator
-            await generateEnhancedPDF(optimizedSlips || packingSlips, useAI)
-            break
-          case "template":
-            // Use the template-based PDF generator
-            await generatePdfFromTemplate(packingSlips, pdfSettings.templateName || undefined)
-            break
-          case "standard":
-          default:
-            // WYSIWYG: when the on-screen preview uses a template, the PDF
-            // follows it; the legacy generator only runs with no template.
-            if (useCustomTemplate && selectedTemplate) {
-              await generatePdfFromTemplate(packingSlips, selectedTemplate)
-            } else if (localStorage.getItem("defaultTemplate")) {
-              await generatePdfFromTemplate(packingSlips)
-            } else {
-              await generatePackingSlipPDF(packingSlips)
-            }
-            break
-        }
-      } catch (error) {
-        console.error("PDF generation error:", error)
-        setError(
-          `PDF generation failed: ${error instanceof Error ? error.message : "Unknown error"}. Please try a different PDF generator or template.`,
-        )
-      } finally {
-        setGenerating(false)
-      }
-    }
-  }
-
-  const handleOptimizedData = (data: PackingSlipData[]) => {
-    setOptimizedSlips(data)
   }
 
   const handleRetryFromLocalStorage = () => {
@@ -411,7 +361,7 @@ export default function ResultsPage() {
       <div className="px-4 sm:px-8 py-10 max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8 print:hidden">
           <div>
-            <p className="kicker mb-3">Step 03 / 03</p>
+            <p className="kicker mb-3">Workflow · Results</p>
             <h1 className="font-display text-4xl">Generated packing slips</h1>
             <p className="text-muted-foreground mt-2">
               {packingSlips.length} slip{packingSlips.length !== 1 ? "s" : ""} · merged by buyer ·{" "}
@@ -516,10 +466,6 @@ export default function ResultsPage() {
               <FileDown className="mr-2 h-4 w-4" />
               Download CSV
             </Button>
-            <Button className="rounded-full" onClick={handleDownloadPDF} disabled={generating}>
-              <Download className="mr-2 h-4 w-4" />
-              {generating ? "Generating PDF..." : "Download PDF"}
-            </Button>
           </div>
         </div>
 
@@ -551,10 +497,6 @@ export default function ResultsPage() {
                   Manage Templates
                 </Button>
               </Link>
-              <Button variant="outline" onClick={() => setShowAnalyzer(!showAnalyzer)} className="flex items-center">
-                <Zap className="mr-2 h-4 w-4 text-amber-500" />
-                {showAnalyzer ? "Hide AI Analyzer" : "AI PDF Analyzer"}
-              </Button>
             </div>
           </div>
 
@@ -586,33 +528,13 @@ export default function ResultsPage() {
 
               <div className="mt-4 text-sm text-muted-foreground">
                 <p>
-                  <strong>Note:</strong> "Download PDF" follows the template selected above — the PDF matches the
-                  preview. Use "PDF Settings" to pick a different generator or template for PDFs only.
+                  <strong>Note:</strong> The template selected above is used for the on-screen preview and for
+                  "Print All" — use your browser's print dialog to save as PDF.
                 </p>
               </div>
             </div>
           )}
 
-          {showAnalyzer && (
-            <div className="mt-6">
-              <div className="flex items-center space-x-2 mb-4">
-                <Switch id="use-ai" checked={useAI} onCheckedChange={setUseAI} />
-                <Label htmlFor="use-ai">Use AI-optimized PDF generation</Label>
-              </div>
-              <PdfAnalyzer
-                packingSlipData={packingSlips}
-                onOptimize={handleOptimizedData}
-                htmlContent={document.querySelector(".page-break-after")?.innerHTML}
-                pdfParams={{
-                  margins: { top: 15, right: 15, bottom: 15, left: 15 },
-                  fonts: {
-                    header: { size: 18, style: "bold" },
-                    normal: { size: 10, style: "normal" },
-                  },
-                }}
-              />
-            </div>
-          )}
         </div>
 
         <div className="space-y-8">

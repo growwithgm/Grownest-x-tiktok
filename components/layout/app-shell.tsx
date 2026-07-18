@@ -13,9 +13,6 @@ import {
   Filter,
   SlidersHorizontal,
   Trash2,
-  Table2,
-  ImageIcon,
-  FileCode,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -41,9 +38,6 @@ const NAV = [
     label: "System",
     items: [
       { href: "/settings", label: "Settings", icon: SlidersHorizontal },
-      { href: "/map-columns", label: "Map columns", icon: Table2 },
-      { href: "/templates", label: "Templates", icon: FileCode },
-      { href: "/sku-images", label: "SKU images", icon: ImageIcon },
     ],
   },
 ]

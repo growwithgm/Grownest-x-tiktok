@@ -92,19 +92,6 @@ test("ATENEA CSV export produces unquoted, cp1252, 10-column output", async ({ p
   // Reina's packing slip lists ALL merged order IDs, oldest first
   await expect(page.getByText("ORDER #576923089641511794, 576923089641511795")).toBeVisible()
 
-  // Download PDF follows the default template (template-based generator, not
-  // the legacy jsPDF layout) — regression guard for the old-design PDF bug
-  const [pdfDownload] = await Promise.all([
-    page.waitForEvent("download", { timeout: 90_000 }),
-    page.getByRole("button", { name: "Download PDF" }).click(),
-  ])
-  // Template-based generator names the file after the template; the legacy
-  // generator would produce "tiktok-shop-packing-slips.pdf"
-  expect(pdfDownload.suggestedFilename()).toBe("packing-slips-tiktok-shop-pro.pdf")
-  const pdfBytes = fs.readFileSync(await pdfDownload.path())
-  expect(pdfBytes.subarray(0, 5).toString("latin1")).toBe("%PDF-")
-  expect(pdfBytes.length).toBeGreaterThan(20_000) // rendered pages, not an empty doc
-
   // Toggle OFF → strict per-order rows (6 orders → 6 rows)
   await page.getByLabel("Merge same-buyer orders into one shipment (ATENEA CSV)").click()
   const [download2] = await Promise.all([
