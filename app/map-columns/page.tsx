@@ -6,6 +6,7 @@ import { Save, HelpCircle, Loader2, FileText, AlertTriangle, Info, CheckCircle }
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { WorkflowStepper } from "@/components/layout/workflow-stepper"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { processCSVWithMapping } from "@/lib/csv-processor"
@@ -391,21 +392,18 @@ export default function MapColumnsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="px-4 sm:px-8 py-10 max-w-5xl mx-auto">
+      <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
         <div>
-          <h2 className="text-xl font-bold">Map CSV Columns</h2>
-          <p className="text-gray-500">Select which CSV column corresponds to each required field</p>
+          <p className="kicker mb-4">Step 02 / 03</p>
+          <h2 className="font-display text-4xl mb-3">Map your columns</h2>
+          <p className="text-muted-foreground">Match CSV headers to slip fields — we'll remember it for next time.</p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/">
-            <Button variant="outline">Back to Home</Button>
-          </Link>
-          <Button variant="outline" onClick={autoDetectMappings}>
-            Auto-Detect Columns
-          </Button>
-        </div>
+        <Button variant="outline" className="rounded-full bg-transparent" onClick={autoDetectMappings}>
+          Auto-Detect Columns
+        </Button>
       </div>
+      <WorkflowStepper current={2} />
 
       {processingError && (
         <Alert variant="destructive" className="mb-6">
@@ -524,7 +522,7 @@ export default function MapColumnsPage() {
                     .map((field) => (
                       <div key={field.id} className="space-y-2">
                         <div className="flex items-center">
-                          <label htmlFor={field.id} className="text-sm font-medium text-gray-700">
+                          <label htmlFor={field.id} className="text-sm font-medium text-muted-foreground">
                             {field.label}
                             {[
                               "orderId",
@@ -540,7 +538,7 @@ export default function MapColumnsPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <HelpCircle className="h-4 w-4 ml-1 text-gray-400" />
+                                <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground/70" />
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>{field.description}</p>
@@ -578,9 +576,9 @@ export default function MapColumnsPage() {
                     ))}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex flex-col sm:flex-row gap-4 mb-8 p-4 bg-background rounded-lg border border-border">
                   <div className="flex-1">
-                    <label htmlFor="mapping-name" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="mapping-name" className="block text-sm font-medium text-muted-foreground mb-2">
                       Mapping Name
                     </label>
                     <div className="flex gap-2">
@@ -605,7 +603,7 @@ export default function MapColumnsPage() {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Save Current Mapping</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Save Current Mapping</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -676,9 +674,9 @@ export default function MapColumnsPage() {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="bg-background p-4 rounded-lg">
                     <h4 className="text-sm font-medium mb-2">Weight Column Information</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
+                    <ul className="text-sm text-muted-foreground space-y-1">
                       <li>• Weight values should be in kilograms (Kg)</li>
                       <li>• Column 50 is the standard location for weight data</li>
                       <li>• Empty or non-numeric values will be treated as 0</li>
@@ -700,21 +698,21 @@ export default function MapColumnsPage() {
 
                   <div className="space-y-2">
                     <h3 className="text-sm font-medium">Available CSV Headers ({csvHeaders.length})</h3>
-                    <div className="bg-gray-50 p-3 rounded border text-xs font-mono overflow-x-auto">
+                    <div className="bg-background p-3 rounded border text-xs font-mono overflow-x-auto">
                       {csvHeaders.join(", ")}
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <h3 className="text-sm font-medium">CSV Sample (First 5 lines)</h3>
-                    <div className="bg-gray-50 p-3 rounded border text-xs font-mono overflow-x-auto whitespace-pre">
+                    <div className="bg-background p-3 rounded border text-xs font-mono overflow-x-auto whitespace-pre">
                       {csvSample || "No sample available"}
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <h3 className="text-sm font-medium">Current Column Mapping</h3>
-                    <div className="bg-gray-50 p-3 rounded border text-xs font-mono overflow-x-auto">
+                    <div className="bg-background p-3 rounded border text-xs font-mono overflow-x-auto">
                       {Object.entries(columnMapping).map(([field, column]) => (
                         <div key={field}>
                           <span className="font-semibold">{field}:</span> {column === "none" ? "(not mapped)" : column}

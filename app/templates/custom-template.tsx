@@ -213,7 +213,7 @@ export default function CustomTemplatePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin h-8 w-8 border-4 border-gray-300 rounded-full border-t-[#FE2C55]"></div>
+      <div className="animate-spin h-8 w-8 border-4 border-border rounded-full border-t-foreground"></div>
     </div>
   )
 }

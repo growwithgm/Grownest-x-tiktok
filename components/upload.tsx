@@ -212,8 +212,8 @@ export function Upload() {
 
       <div
         className={cn(
-          "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
-          isDragging ? "border-primary bg-primary/5" : "border-gray-300 hover:bg-gray-50",
+          "dropzone p-10 sm:p-14 text-center transition-colors",
+          isDragging ? "border-foreground/50 bg-secondary/60" : "hover:bg-secondary/40",
           "cursor-pointer",
         )}
         onDragOver={handleDragOver}
@@ -234,13 +234,13 @@ export function Upload() {
         <div className="flex flex-col items-center justify-center">
           {file ? (
             <div className="relative">
-              <div className="flex items-center justify-center bg-green-50 rounded-full p-3 mb-4">
-                <CheckCircle className="h-8 w-8 text-green-500" />
+              <div className="flex items-center justify-center bg-secondary rounded-full p-3 mb-4">
+                <CheckCircle className="h-8 w-8 text-foreground" />
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-gray-100 hover:bg-gray-200"
+                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-secondary hover:bg-secondary/80"
                 onClick={(e) => {
                   e.stopPropagation()
                   clearFile()
@@ -250,27 +250,29 @@ export function Upload() {
               </Button>
             </div>
           ) : (
-            <div className="bg-gray-100 rounded-full p-3 mb-4">
-              <UploadIcon className="h-8 w-8 text-gray-400" />
+            <div className="bg-secondary rounded-full p-3 mb-4">
+              <UploadIcon className="h-8 w-8 text-muted-foreground/70" />
             </div>
           )}
-          <p className="text-lg font-medium text-gray-700 mb-1">
-            {file ? file.name : "Drag & drop your CSV file here"}
+          <p className="font-display text-2xl text-foreground mb-1">
+            {file ? file.name : "Drop your CSV here"}
           </p>
-          <p className="text-sm text-gray-500">
-            {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : "or click to browse files (TikTok Shop CSV format)"}
+          <p className="text-sm text-muted-foreground">
+            {file
+              ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
+              : "or click to browse files — TikTok Shop CSV format"}
           </p>
         </div>
       </div>
 
       {file && csvHeaders.length > 0 && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="mt-4 p-4 bg-background rounded-lg border border-border">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-medium text-gray-700">Detected CSV Headers:</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">Detected CSV Headers:</h3>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center text-xs text-gray-500 cursor-help">
+                  <div className="flex items-center text-xs text-muted-foreground cursor-help">
                     <HelpCircle className="h-3 w-3 mr-1" />
                     CSV Format Help
                   </div>
@@ -284,7 +286,7 @@ export function Upload() {
               </Tooltip>
             </TooltipProvider>
           </div>
-          <div className="text-xs text-gray-600 max-h-32 overflow-y-auto">
+          <div className="text-xs text-muted-foreground max-h-32 overflow-y-auto">
             {csvHeaders.map((header, index) => (
               <div key={index} className="mb-1">
                 <span className="font-medium">Column {index + 1}:</span> {header}
@@ -295,19 +297,19 @@ export function Upload() {
       )}
 
       {csvSample && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">CSV Sample:</h3>
-          <pre className="text-xs text-gray-600 max-h-32 overflow-y-auto whitespace-pre-wrap">{csvSample}</pre>
+        <div className="mt-4 p-4 bg-background rounded-lg border border-border">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">CSV Sample:</h3>
+          <pre className="text-xs text-muted-foreground max-h-32 overflow-y-auto whitespace-pre-wrap">{csvSample}</pre>
         </div>
       )}
 
       {file && !isProcessing && (
-        <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+        <div className="flex items-center justify-between bg-background p-4 rounded-lg">
           <div className="flex items-center">
-            <FileText className="h-5 w-5 text-gray-500 mr-2" />
-            <span className="text-sm font-medium text-gray-700">{file.name}</span>
+            <FileText className="h-5 w-5 text-muted-foreground mr-2" />
+            <span className="text-sm font-medium text-muted-foreground">{file.name}</span>
           </div>
-          <Button variant="default" onClick={handleUpload} disabled={csvHeaders.length === 0}>
+          <Button variant="default" className="rounded-full" onClick={handleUpload} disabled={csvHeaders.length === 0}>
             Continue to Column Mapping
           </Button>
         </div>
@@ -316,12 +318,12 @@ export function Upload() {
       {isProcessing && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Processing file...</span>
-            <span className="text-sm text-gray-500">{progress}%</span>
+            <span className="text-sm font-medium text-muted-foreground">Processing file...</span>
+            <span className="text-sm text-muted-foreground">{progress}%</span>
           </div>
           <Progress value={progress} className="h-2" />
           <div className="flex justify-center">
-            <Loader2 className="h-5 w-5 text-gray-500 animate-spin" />
+            <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
           </div>
         </div>
       )}

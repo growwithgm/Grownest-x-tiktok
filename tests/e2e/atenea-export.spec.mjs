@@ -22,7 +22,7 @@ test("ATENEA CSV export produces unquoted, cp1252, 10-column output", async ({ p
   await page.getByRole("button", { name: "Auto-Detect Columns" }).click()
   await page.getByRole("button", { name: "Process CSV with Mapping" }).click()
   await page.waitForURL("**/results", { timeout: 60_000 })
-  await expect(page.getByText("Generated Packing Slips")).toBeVisible()
+  await expect(page.getByText("Generated packing slips")).toBeVisible()
 
   // Screenshots at desktop and mobile widths
   await page.screenshot({ path: path.join(shots, "results-1280.png"), fullPage: true })

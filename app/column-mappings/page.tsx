@@ -93,7 +93,7 @@ export default function ColumnMappingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <Link href="/">
@@ -104,9 +104,9 @@ export default function ColumnMappingsPage() {
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h1 className="text-xl font-bold mb-2">Manage Column Mappings</h1>
-          <p className="text-gray-600 mb-6">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-6 mb-8">
+          <h1 className="font-display text-4xl mb-3">Column mappings</h1>
+          <p className="text-muted-foreground mb-6">
             Create and manage column mappings for different CSV formats. These mappings will help you process CSV files
             with different column structures.
           </p>
@@ -131,25 +131,25 @@ export default function ColumnMappingsPage() {
                 <div className="max-h-80 overflow-y-auto">
                   {Object.keys(mappings).length > 0 ? (
                     <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-background">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             Mapping Name
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-card divide-y divide-gray-200">
                         {Object.keys(mappings).map((name) => (
                           <tr
                             key={name}
                             className={selectedMapping === name ? "bg-blue-50" : ""}
                             onClick={() => setSelectedMapping(name)}
                           >
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{name}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">{name}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -168,7 +168,7 @@ export default function ColumnMappingsPage() {
                       </tbody>
                     </table>
                   ) : (
-                    <div className="p-6 text-center text-gray-500">No column mappings saved yet</div>
+                    <div className="p-6 text-center text-muted-foreground">No column mappings saved yet</div>
                   )}
                 </div>
               </div>
@@ -179,15 +179,15 @@ export default function ColumnMappingsPage() {
 
               {selectedMapping ? (
                 <div className="border rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-                    <h3 className="text-sm font-medium text-gray-700">{selectedMapping} Mapping</h3>
+                  <div className="bg-background px-6 py-3 border-b border-border">
+                    <h3 className="text-sm font-medium text-muted-foreground">{selectedMapping} Mapping</h3>
                   </div>
                   <div className="p-6">
                     <div className="space-y-4">
                       {requiredFields.map((field, index) => (
                         <div key={field.id} className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-700">{field.label}:</span>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm font-medium text-muted-foreground">{field.label}:</span>
+                          <span className="text-sm text-muted-foreground">
                             {mappings[selectedMapping][index] || "Not mapped"}
                           </span>
                         </div>
@@ -196,7 +196,7 @@ export default function ColumnMappingsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="border rounded-lg p-6 text-center text-gray-500">Select a mapping to view details</div>
+                <div className="border rounded-lg p-6 text-center text-muted-foreground">Select a mapping to view details</div>
               )}
             </div>
           </div>

@@ -189,7 +189,7 @@ export function TemplateEditor({ sampleData, onSave, initialTemplate }: Template
             </div>
           </div>
           <p className="mt-2 mb-1">For item loops, use:</p>
-          <pre className="bg-gray-100 p-2 rounded text-sm overflow-x-auto">
+          <pre className="bg-secondary p-2 rounded text-sm overflow-x-auto">
             {`{{#items}}
   <tr>
     <td>{{item_name}}</td>
@@ -239,7 +239,7 @@ export function TemplateEditor({ sampleData, onSave, initialTemplate }: Template
         </TabsContent>
 
         <TabsContent value="preview" className="border rounded-md p-4">
-          <div className="bg-white border rounded-lg p-4 h-[500px] overflow-auto">
+          <div className="bg-card border rounded-lg p-4 h-[500px] overflow-auto">
             <iframe
               srcDoc={previewHtml}
               title="Template Preview"

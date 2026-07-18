@@ -18,6 +18,11 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-geist-sans)", "Geist", "Helvetica Neue", "Arial", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "Geist Mono", "monospace"],
+        display: ["Newsreader", "Georgia", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

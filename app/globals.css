@@ -26,26 +26,27 @@
     --radius: 0.75rem;
   }
 
+  /* TokFlow monochrome (v2.0): near-black surfaces, off-white ink, no hue */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 348 100% 56%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --background: 240 10% 4%; /* #09090B */
+    --foreground: 0 0% 98%; /* #FAFAFA */
+    --card: 240 6% 8%; /* #141417 */
+    --card-foreground: 0 0% 98%;
+    --popover: 240 6% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%; /* white pill buttons, dark text */
+    --primary-foreground: 240 10% 4%;
+    --secondary: 240 5% 11%; /* #1B1B1F */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 5% 11%;
+    --muted-foreground: 240 4% 57%; /* #8E8E96 */
+    --accent: 240 5% 13%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 348 100% 56%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 0 0% 98%;
   }
 }
 
@@ -71,7 +72,55 @@
   }
 }
 
+/* TokFlow design language */
+@layer utilities {
+  /* Serif display headings — Newsreader with Georgia fallback */
+  .font-display {
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  /* Mono uppercase kicker labels, e.g. "STEP 01 / 03" */
+  .kicker {
+    font-family: var(--font-geist-mono), "Geist Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .font-mono-ui {
+    font-family: var(--font-geist-mono), "Geist Mono", monospace;
+  }
+
+  /* Dashed dropzone surface */
+  .dropzone {
+    border: 1px dashed hsl(var(--border));
+    border-radius: 16px;
+    background: hsl(var(--card) / 0.5);
+  }
+
+  .tokflow-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 16px;
+  }
+}
+
+::selection {
+  background: #fafafa;
+  color: #09090b;
+}
+
 @media print {
+  /* The app chrome is dark; printed slips must stay ink-on-white */
+  body,
+  html {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
   .page-break-after {
     page-break-after: always;
   }

@@ -1,46 +1,50 @@
 "use client"
 
-import { useState } from "react"
-import { Upload, FileText, Settings, ImageIcon, FileCode, Printer, Trash2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Upload, Table2, Truck, Filter, ImageIcon, FileCode, SlidersHorizontal } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { DeleteDataDialog } from "@/components/delete-data-dialog"
 
 export default function Home() {
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const router = useRouter()
+  const [stats, setStats] = useState({ slips: 0, rows: 0, templates: 0 })
 
-  // Function to handle file upload
+  useEffect(() => {
+    try {
+      const slips = JSON.parse(localStorage.getItem("packingSlips") || "[]")
+      const rows = JSON.parse(localStorage.getItem("rawCsvData") || "[]")
+      const templates = JSON.parse(localStorage.getItem("customTemplates") || "[]")
+      setStats({
+        slips: Array.isArray(slips) ? slips.length : 0,
+        rows: Array.isArray(rows) && rows.length > 1 ? rows.length - 1 : 0,
+        templates: Array.isArray(templates) ? templates.length : 0,
+      })
+    } catch {
+      // fresh browser — zeros are fine
+    }
+  }, [])
+
   const handleUploadClick = () => {
-    // Create a temporary input element
     const input = document.createElement("input")
     input.type = "file"
     input.accept = ".csv"
     input.style.display = "none"
 
-    // Add event listener for file selection
     input.addEventListener("change", (e) => {
       const target = e.target as HTMLInputElement
       if (target.files && target.files[0]) {
         const file = target.files[0]
-
-        // Create a FileReader to read the file content
         const reader = new FileReader()
         reader.onload = (event) => {
           if (event.target && event.target.result) {
-            // Store CSV content in localStorage
-            localStorage.setItem("csvContent", event.target.result as string)
-
-            // Extract and store headers
             const content = event.target.result as string
+            localStorage.setItem("csvContent", content)
             const headers = content
               .split("\n")[0]
               .split(",")
               .map((h) => h.trim())
             localStorage.setItem("csvHeaders", JSON.stringify(headers))
-
-            // Navigate to the map-columns page
             router.push("/map-columns")
           }
         }
@@ -48,134 +52,109 @@ export default function Home() {
       }
     })
 
-    // Trigger the file dialog
     document.body.appendChild(input)
     input.click()
     document.body.removeChild(input)
   }
 
-  const cards = [
-    {
-      id: "upload",
-      title: "Upload Orders",
-      description: "Upload your TikTok Shop orders CSV file to generate packing slips",
-      icon: <Upload className="h-8 w-8 mb-4 text-pink-500" />,
-      action: handleUploadClick,
-      primary: true,
-    },
-    {
-      id: "map-columns",
-      title: "Map Columns",
-      description: "Configure how your CSV columns map to order data fields",
-      icon: <FileText className="h-8 w-8 mb-4 text-blue-500" />,
-      href: "/map-columns",
-    },
-    {
-      id: "sku-images",
-      title: "SKU Images",
-      description: "Upload a CSV with SKU and image URL mappings",
-      icon: <ImageIcon className="h-8 w-8 mb-4 text-green-500" />,
-      href: "/sku-images",
-    },
-    {
-      id: "templates",
-      title: "Custom Templates",
-      description: "Create and edit custom packing slip templates",
-      icon: <FileCode className="h-8 w-8 mb-4 text-purple-500" />,
-      href: "/templates",
-    },
-    {
-      id: "settings",
-      title: "Settings",
-      description: "Configure application settings and preferences",
-      icon: <Settings className="h-8 w-8 mb-4 text-gray-500" />,
-      href: "/settings",
-    },
-    {
-      id: "results",
-      title: "View Results",
-      description: "View and print your generated packing slips",
-      icon: <Printer className="h-8 w-8 mb-4 text-orange-500" />,
-      href: "/results",
-    },
+  const tools = [
+    { href: "/ship-file", label: "Ship File converter", desc: "Amazon tracking .txt → TikTok Ship File", icon: Truck },
+    { href: "/fbt-filter", label: "FBT Filter", desc: "Strip Fulfilled-by-TikTok rows from an export", icon: Filter },
+    { href: "/map-columns", label: "Map columns", desc: "Match CSV headers to slip fields", icon: Table2 },
+    { href: "/templates", label: "Custom templates", desc: "Design your own packing slips", icon: FileCode },
+    { href: "/sku-images", label: "SKU images", desc: "Show product photos on every slip", icon: ImageIcon },
+    { href: "/settings", label: "Settings", desc: "Branding, PDF & data defaults", icon: SlidersHorizontal },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Grow Nest – Order Printer</h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Generate professional packing slips for TikTok Shop orders with smart automation custom templates and powerful branding tools to simplify fulfillment process
+    <div className="px-4 sm:px-8 py-10 max-w-6xl mx-auto">
+      <p className="kicker mb-4">TokFlow by Grow Nest · Seller Suite</p>
+      <h1 className="font-display text-4xl sm:text-5xl leading-[1.05] mb-4">
+        Turn raw TikTok orders into <em className="text-muted-foreground">beautiful</em> packing slips.
+      </h1>
+      <p className="text-muted-foreground max-w-xl mb-10">
+        Import a CSV, map your columns once, and generate print-ready slips with your own branding — fulfillment,
+        refined.
+      </p>
+
+      <div className="tokflow-card p-8 sm:p-10 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-8">
+        <div className="flex-1">
+          <span className="font-mono-ui inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-[11px] tracking-[0.18em] uppercase text-muted-foreground mb-4">
+            <span className="h-1.5 w-1.5 rounded-full bg-foreground" /> Ready to print
+          </span>
+          <h2 className="font-display text-2xl mb-2">Start a new batch</h2>
+          <p className="text-muted-foreground mb-6 max-w-md">
+            Drop your TikTok Shop export and we'll group orders by recipient, total weights, and lay out clean slips
+            automatically.
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {cards.map((card) =>
-            card.href ? (
-              // Use Link for navigation cards
-              <Link href={card.href} key={card.id} className="block">
-                <div
-                  className={`bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full transition-all duration-200 ${
-                    hoveredCard === card.id
-                      ? "transform -translate-y-1 shadow-md border-gray-300"
-                      : "hover:shadow-md hover:border-gray-300"
-                  } ${card.primary ? "ring-2 ring-pink-500 ring-opacity-50" : ""}`}
-                  onMouseEnter={() => setHoveredCard(card.id)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                >
-                  <div className="flex flex-col items-center text-center">
-                    {card.icon}
-                    <h2 className="text-xl font-semibold mb-2">{card.title}</h2>
-                    <p className="text-gray-600">{card.description}</p>
-                  </div>
-                </div>
-              </Link>
-            ) : (
-              // Use Button for action cards (like upload)
-              <div key={card.id} className="block">
-                <Button
-                  variant="ghost"
-                  className={`w-full h-full bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all duration-200 ${
-                    hoveredCard === card.id
-                      ? "transform -translate-y-1 shadow-md border-gray-300"
-                      : "hover:shadow-md hover:border-gray-300"
-                  } ${card.primary ? "ring-2 ring-pink-500 ring-opacity-50" : ""}`}
-                  onMouseEnter={() => setHoveredCard(card.id)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                  onClick={card.action}
-                >
-                  <div className="flex flex-col items-center text-center">
-                    {card.icon}
-                    <h2 className="text-xl font-semibold mb-2">{card.title}</h2>
-                    <p className="text-gray-600 break-words whitespace-normal leading-relaxed text-center text-base">
-                      {card.description}
-                    </p>
-                  </div>
-                </Button>
-              </div>
-            ),
-          )}
-        </div>
-
-        <div className="mt-12 flex justify-center">
-          <DeleteDataDialog
-            trigger={
-              <Button
-                variant="outline"
-                className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 bg-transparent"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete All Data
+          <div className="flex flex-wrap gap-3">
+            <Button className="rounded-full" onClick={handleUploadClick}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload CSV
+            </Button>
+            <Link href="/map-columns">
+              <Button variant="outline" className="rounded-full bg-transparent">
+                Map columns
               </Button>
-            }
-          />
+            </Link>
+          </div>
         </div>
+        <div className="hidden sm:block relative w-56 shrink-0" aria-hidden>
+          <div className="absolute inset-0 translate-x-3 translate-y-3 rotate-3 rounded-xl bg-secondary" />
+          <div className="relative rounded-xl bg-[#FAFAFA] text-[#141417] p-4 shadow-xl">
+            <p className="font-mono-ui text-[9px] tracking-[0.2em] text-right">
+              PACKING
+              <br />
+              SLIP
+            </p>
+            <div className="mt-3 space-y-2">
+              <div className="h-1.5 w-3/4 rounded bg-[#141417]/80" />
+              <div className="h-1.5 w-1/2 rounded bg-[#141417]/30" />
+              <div className="h-1.5 w-2/3 rounded bg-[#141417]/30" />
+              <div className="h-1.5 w-1/2 rounded bg-[#141417]/30" />
+            </div>
+            <p className="font-mono-ui mt-4 text-[9px] text-right">2.40kg</p>
+          </div>
+        </div>
+      </div>
 
-        <div className="mt-8 text-center">
-          <p className="text-gray-500 text-sm">Grow Nest Order Printer – Where Digital Growth Takes Flight 🚀 Simplify your fulfillment elevate your brand</p>
-          <p className="text-gray-400 text-xs mt-2">v1.2.0 · same-buyer order merging (2026-07-18)</p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+        {[
+          { label: "Slips in last batch", value: stats.slips, sub: "grouped by buyer" },
+          { label: "Rows uploaded", value: stats.rows, sub: "in the current CSV" },
+          { label: "Saved templates", value: stats.templates, sub: stats.templates > 0 ? "ready to use" : "none yet" },
+        ].map((s) => (
+          <div key={s.label} className="tokflow-card p-5">
+            <p className="kicker mb-3">{s.label}</p>
+            <p className="font-display text-3xl">{String(s.value).padStart(2, "0")}</p>
+            <p className="text-sm text-muted-foreground mt-1">{s.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-end justify-between mb-4">
+        <h3 className="font-display text-xl">Jump back in</h3>
+        <span className="kicker">{String(tools.length).padStart(2, "0")} tools</span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+        {tools.map((tool) => (
+          <Link
+            key={tool.href}
+            href={tool.href}
+            className="tokflow-card p-5 hover:border-foreground/30 transition-colors block"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary mb-4">
+              <tool.icon className="h-5 w-5" />
+            </span>
+            <p className="font-medium mb-1">{tool.label}</p>
+            <p className="text-sm text-muted-foreground">{tool.desc}</p>
+          </Link>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between border-t border-border pt-6">
+        <p className="text-sm text-muted-foreground">Grow Nest — where digital growth takes flight.</p>
+        <p className="font-mono-ui text-[11px] text-muted-foreground/70">v2.0.0 · monochrome</p>
       </div>
     </div>
   )

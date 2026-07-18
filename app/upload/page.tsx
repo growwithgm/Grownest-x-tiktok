@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Upload as UploadComponent } from "@/components/upload"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Upload } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { WorkflowStepper } from "@/components/layout/workflow-stepper"
 
 export default function UploadPage() {
   const router = useRouter()
@@ -59,28 +58,41 @@ export default function UploadPage() {
   }, [router, toast])
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Upload TikTok Shop Orders</h1>
+    <div className="px-4 sm:px-8 py-10 max-w-4xl mx-auto">
+      <p className="kicker mb-4">Step 01 / 03</p>
+      <h1 className="font-display text-4xl mb-3">Upload your orders</h1>
+      <p className="text-muted-foreground max-w-lg mb-8">
+        Export your orders from TikTok Shop as a CSV and drop the file below. Nothing leaves your browser.
+      </p>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Upload className="mr-2 h-5 w-5 text-primary" />
-            Upload CSV
-          </CardTitle>
-          <CardDescription>Upload your TikTok Shop orders CSV file</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isRedirecting ? (
-            <div className="text-center py-8">
-              <p className="text-lg">CSV file loaded successfully!</p>
-              <p className="text-gray-500">Redirecting to column mapping...</p>
-            </div>
-          ) : (
-            <UploadComponent />
-          )}
-        </CardContent>
-      </Card>
+      <WorkflowStepper current={1} />
+
+      {isRedirecting ? (
+        <div className="tokflow-card text-center py-12">
+          <p className="text-lg">CSV file loaded successfully!</p>
+          <p className="text-muted-foreground">Redirecting to column mapping...</p>
+        </div>
+      ) : (
+        <UploadComponent />
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+        <div className="tokflow-card p-6">
+          <p className="kicker mb-4">What we look for</p>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li>✓ Recipient name, phone &amp; address</li>
+            <li>✓ SKU, product &amp; quantity</li>
+            <li>✓ Parcel weight in kg</li>
+          </ul>
+        </div>
+        <div className="tokflow-card p-6">
+          <p className="kicker mb-4">Good to know</p>
+          <p className="text-sm text-muted-foreground">
+            Columns don't need to be in any particular order — you'll map them on the next step, and we'll remember it
+            for next time. Orders from the same buyer are merged into one slip.
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
