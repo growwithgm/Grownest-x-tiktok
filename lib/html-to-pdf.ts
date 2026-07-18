@@ -30,6 +30,7 @@ export function processTemplate(template: string, data: PackingSlipData): string
     .replace(/{{total_items}}/g, totalItems.toString())
     .replace(/{{total_products}}/g, totalProducts.toString())
     .replace(/{{total_orders}}/g, totalOrders.toString())
+    .replace(/{{total_weight}}/g, (data.totalWeight || 0).toFixed(2))
 
   // Process items loop
   const itemsRegex = /{{#items}}([\s\S]*?){{\/items}}/g
@@ -43,6 +44,7 @@ export function processTemplate(template: string, data: PackingSlipData): string
           .replace(/{{item_quantity}}/g, item.quantity.toString())
           .replace(/{{item_order_id}}/g, item.orderId || "")
           .replace(/{{item_image_url}}/g, item.imageUrl || "")
+          .replace(/{{item_weight}}/g, (item.weight || 0).toFixed(2))
           .replace(/{{item_index}}/g, (index + 1).toString())
 
         return itemHtml

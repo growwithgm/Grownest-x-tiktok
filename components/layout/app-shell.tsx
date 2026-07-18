@@ -1,8 +1,10 @@
 "use client"
 
 import type React from "react"
+import { useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { seedBuiltinTemplates } from "@/lib/builtin-templates"
 import {
   LayoutGrid,
   Upload,
@@ -59,6 +61,10 @@ function GrowNestMark({ className }: { className?: string }) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+
+  useEffect(() => {
+    seedBuiltinTemplates()
+  }, [])
 
   return (
     <div className="min-h-screen bg-background text-foreground lg:flex">
