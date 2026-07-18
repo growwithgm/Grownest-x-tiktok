@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Upload, FileText, AlertCircle, Loader2, Search, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -133,8 +133,8 @@ export function SkuImageImporter() {
             if (results.data && results.data.length > 0) {
               const imageData = results.data
                 .map((row: any) => ({
-                  sku: row[skuColumn],
-                  imageUrl: row[imageUrlColumn],
+                  sku: String(row[skuColumn] ?? "").trim(),
+                  imageUrl: String(row[imageUrlColumn] ?? "").trim(),
                 }))
                 .filter((item) => item.sku && item.imageUrl)
 
@@ -190,10 +190,11 @@ export function SkuImageImporter() {
     }
   }
 
-  // Load stored images on component mount
-  useState(() => {
+  // Load stored images on component mount (client only)
+  useEffect(() => {
     loadStoredImages()
-  })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleDeleteImage = (sku: string) => {
     const updatedImages = skuImages.filter((item) => item.sku !== sku)
