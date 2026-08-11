@@ -43,8 +43,13 @@ ATENEA's saved template has **no text qualifier** and reads
   weight `X.XX`, description sanitized/transliterated and capped at 140 chars
 - `Recip. additional address` = address line 2 (`House Name or Number`),
   or a duplicate of the address when the input has no line 2
-- hard invariant: **exactly 9 commas per line** — a violating row blocks the
-  download and is shown in an error instead of silently exporting a bad file
+- hard invariant: **exactly 9 commas per line** and **no double quote anywhere**
+  — a violating row blocks the download and is shown in an error instead of
+  silently exporting a bad file
+- hardening (2026-08-11 incident): a customer-typed `"` in an address swallowed
+  120/122 rows in ATENEA's parser — all double quotes (straight or smart) are
+  transliterated to `'`; semicolons become spaces (delimiter-sniffing safety);
+  country is normalized (Spain/ES → España); descriptions never end in `...`
 
 ## What broke (fixed 2026-07-17, v1.1.0)
 

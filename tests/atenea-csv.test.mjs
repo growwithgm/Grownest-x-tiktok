@@ -6,6 +6,7 @@ import assert from "node:assert/strict"
 import {
   ATENEA_HEADERS,
   buildAteneaCsv,
+  normalizeCountry,
   encodeCp1252,
   formatSpanishPhone,
   formatSpanishZip,
@@ -149,17 +150,50 @@ test("header row matches the ATENEA template", () => {
   assert.equal(lines[0], ATENEA_HEADERS.join(","))
 })
 
-test("description is comma-free, capped at 140 chars, ends on a word boundary", () => {
+test("description is comma-free, capped at 140 chars, no trailing ellipsis", () => {
   const { dataRows } = exportRows()
   const desc = dataRows[0][8]
   assert.equal(desc.includes(","), false)
   assert.ok(desc.length <= 140, `description too long: ${desc.length}`)
-  assert.ok(desc.endsWith("..."))
+  assert.ok(!desc.endsWith("."), "must not end with dots/ellipsis") // carriers see pre-cut titles otherwise
   assert.equal(desc.includes("–"), false) // en dash transliterated
-  // word boundary: character before the ellipsis is not a space and the cut is between words
-  const stem = desc.slice(0, -3)
-  assert.ok(!stem.endsWith(" "))
-  assert.ok(sanitizeField(LONG_DESCRIPTION).startsWith(stem))
+  assert.ok(!desc.endsWith(" "))
+  assert.ok(sanitizeField(LONG_DESCRIPTION).startsWith(desc)) // truncation on a word boundary, no invented text
+})
+
+test("truncateDescription strips pre-truncated trailing dots from source titles", () => {
+  assert.equal(truncateDescription("Método Curly..."), "Método Curly")
+  assert.equal(truncateDescription("Champú corto…"), "Champú corto")
+})
+
+test("country is normalized: Spain/ES variants → España", () => {
+  assert.equal(normalizeCountry("Spain"), "España")
+  assert.equal(normalizeCountry("españa"), "España")
+  assert.equal(normalizeCountry("ES"), "España")
+  assert.equal(normalizeCountry(""), "España")
+  assert.equal(normalizeCountry("Portugal"), "Portugal")
+})
+
+test("no double quote can ever reach the output", () => {
+  const { csv, ok } = buildAteneaCsv([
+    {
+      name: 'khaddouj "el" biary',
+      phone: "632869548",
+      email: "x@y.com",
+      address1: "C. Canchal",
+      zip: "29003",
+      country: "Spain",
+      reference: "576935223153236548",
+      address2: 'N" 8 8-F',
+      description: "Don Cabello Activador de Rizos líquido - 400 ml",
+      weightKg: 0.95,
+    },
+  ])
+  assert.equal(ok, true)
+  assert.equal(csv.includes('"'), false)
+  const row = csv.trimEnd().split("\n")[1].split(",")
+  assert.equal(row[7], "N' 8 8-F")
+  assert.equal(row[5], "España")
 })
 
 test("weight is preserved with two decimals", () => {
@@ -179,7 +213,9 @@ test("phone numbers normalize to (+34) + 9 digits", () => {
 
 test("sanitizer: commas/newlines to spaces, smart punctuation transliterated, ®/™ stripped", () => {
   assert.equal(sanitizeField("a,b\r\nc\td"), "a b c d")
-  assert.equal(sanitizeField("rizos – definidos… “naturales” ‘ya’"), "rizos - definidos... \"naturales\" 'ya'")
+  assert.equal(sanitizeField("rizos – definidos… “naturales” ‘ya’"), "rizos - definidos... 'naturales' 'ya'")
+  assert.equal(sanitizeField('N" 8 8-F'), "N' 8 8-F") // raw " broke ATENEA (2/122 rows imported)
+  assert.equal(sanitizeField("n° 2 ; 6-2"), "n° 2 6-2") // ; breaks delimiter sniffing
   assert.equal(sanitizeField("Don Cabello® Pack™"), "Don Cabello Pack")
   assert.equal(sanitizeField("  doble   espacio  "), "doble espacio")
 })
