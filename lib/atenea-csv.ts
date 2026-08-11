@@ -36,7 +36,10 @@ const TRANSLITERATIONS: Array<[RegExp, string]> = [
   [/[–—−]/g, "-"], // – — − → -
   [/…/g, "..."], // … → ...
   [/[‘’‚′]/g, "'"], // ' ' ‚ ′ → '
-  [/[“”„″«»]/g, '"'], // " " „ ″ « » → "
+  // ALL double quotes (straight or smart) become apostrophes: a single raw "
+  // in customer data opens a quoted field in ATENEA's parser and swallows the
+  // rest of the file (2/122 orders imported). The output must never contain ".
+  [/["“”„″«»]/g, "'"],
   [/[®™]/g, ""], // ® ™ stripped
   [/ /g, " "], // NBSP → space
 ]
@@ -48,18 +51,18 @@ export function sanitizeField(value: string | number | null | undefined): string
   for (const [pattern, replacement] of TRANSLITERATIONS) {
     s = s.replace(pattern, replacement)
   }
-  s = s.replace(/[,\r\n\t]/g, " ")
+  s = s.replace(/[,;\r\n\t]/g, " ") // ; can break importer delimiter sniffing
   s = s.replace(/ {2,}/g, " ")
   return s.trim()
 }
 
 export function truncateDescription(value: string, maxLength = 140): string {
-  const s = sanitizeField(value)
+  let s = sanitizeField(value).replace(/[.]+$/g, "").trim() // no trailing "..." — source titles arrive pre-cut
   if (s.length <= maxLength) return s
-  let cut = s.slice(0, maxLength - 3)
+  let cut = s.slice(0, maxLength)
   const lastSpace = cut.lastIndexOf(" ")
   if (lastSpace > 0) cut = cut.slice(0, lastSpace)
-  return cut.trimEnd() + "..."
+  return cut.trimEnd().replace(/[.,;:-]+$/g, "").trim()
 }
 
 // ATENEA expects "(+34)" followed by the 9-digit national number.
@@ -78,6 +81,14 @@ export function formatSpanishPhone(value: string | null | undefined): string {
 export function formatSpanishZip(value: string | null | undefined): string {
   const raw = sanitizeField(value)
   if (/^\d{1,5}$/.test(raw)) return raw.padStart(5, "0")
+  return raw
+}
+
+// The export always ships domestically; TikTok mixes "España" and "Spain"
+// (and could send "ES") for the same country — normalize to one value.
+export function normalizeCountry(value: string | null | undefined): string {
+  const raw = sanitizeField(value)
+  if (!raw || /^(spain|españa|espana|es)$/i.test(raw)) return "España"
   return raw
 }
 
@@ -100,7 +111,7 @@ export function buildAteneaCsv(records: AteneaRecord[]): AteneaCsvResult {
       sanitizeField(record.email),
       address1,
       formatSpanishZip(record.zip),
-      sanitizeField(record.country) || "España",
+      normalizeCountry(record.country),
       sanitizeField(record.reference),
       address2,
       truncateDescription(record.description),
@@ -114,6 +125,10 @@ export function buildAteneaCsv(records: AteneaRecord[]): AteneaCsvResult {
     }
     if (/[\r\n]/.test(line)) {
       errors.push(`Row ${index + 1} (${fields[0] || "unnamed"}): contains line break → ${line}`)
+      return
+    }
+    if (line.includes('"')) {
+      errors.push(`Row ${index + 1} (${fields[0] || "unnamed"}): contains a double quote → ${line}`)
       return
     }
     lines.push(line)

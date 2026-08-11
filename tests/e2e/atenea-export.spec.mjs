@@ -69,7 +69,7 @@ test("ATENEA CSV export produces unquoted, cp1252, 10-column output", async ({ p
   expect(veronica[7]).toBe("2\xb0c")
   expect(veronica[9]).toBe("1.53")
   expect(veronica[8].length).toBeLessThanOrEqual(140)
-  expect(veronica[8].endsWith("...")).toBe(true)
+  expect(veronica[8].endsWith(".")).toBe(false) // no trailing ellipsis in carrier descriptions
 
   const reina = byName["Reina luz Maldonado"]
   expect(reina[3]).toBe("Plaza Santiago")

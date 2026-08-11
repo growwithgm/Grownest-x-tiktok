@@ -377,7 +377,7 @@ export default function ResultsPage() {
             <p className="text-muted-foreground mt-2">
               {packingSlips.length} slip{packingSlips.length !== 1 ? "s" : ""} · merged by buyer ·{" "}
               {packingSlips.reduce((sum, s) => sum + (s.totalWeight || 0), 0).toFixed(2)} kg total{" "}
-              <span className="font-mono-ui text-[11px] text-muted-foreground/70 ml-2">v2.1.0 · ATENEA export</span>
+              <span className="font-mono-ui text-[11px] text-muted-foreground/70 ml-2">v2.1.1 · ATENEA export</span>
               {productsOffline && (
                 <span className="font-mono-ui inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-0.5 text-[10px] tracking-[0.14em] uppercase text-muted-foreground ml-2 align-middle">
                   <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Offline copy of product images
